@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -9,9 +11,10 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.Collection;
 
+
 @RestController
 @RequestMapping("films")
-@Slf4j
+@Validated
 public class FilmController {
     private final FilmStorage filmStorage;
     private final FilmService filmService;
@@ -27,27 +30,27 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film createFilm(@RequestBody Film film) {
+    public Film createFilm(@Valid @RequestBody Film film) {
         return filmStorage.createFilm(film);
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody Film film) {
+    public Film updateFilm(@Valid @RequestBody Film film) {
         return filmStorage.updateFilm(film);
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getPopularFilms(@DefaultValue(value = "10") @RequestParam int count) {
+    public Collection<Film> getPopularFilms(@Positive @DefaultValue(value = "10") @Positive @RequestParam int count) {
         return filmStorage.getPopularFilms(count);
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void addLike(@PathVariable long id, @PathVariable long userId) {
+    public void addLike(@Positive @PathVariable long id, @Positive @PathVariable long userId) {
         filmService.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void removeFilm(@PathVariable long id, @PathVariable long userId) {
+    public void removeFilm(@Positive @PathVariable long id, @Positive @PathVariable long userId) {
         filmService.removeLike(id, userId);
     }
 }

@@ -3,11 +3,12 @@ package ru.yandex.practicum.filmorate.storage.storage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.LocalDate;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 @Component
 @Slf4j
@@ -22,7 +23,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User createUser(User user) {
-        validateUser(user);
+//        validateUser(user);
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
@@ -35,7 +36,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        validateUser(user);
+//        validateUser(user);
         User currentUser = users.get(user.getId());
         if (currentUser == null) {
             log.warn("Обновление не выполнено — пользователь с ID={} не найден", user.getId());
@@ -55,20 +56,20 @@ public class InMemoryUserStorage implements UserStorage {
         }
         return users.get(id);
     }
-
-    private void validateUser(User user) {
-        if (user.getEmail() == null || user.getEmail().isBlank()) {
-            throw new ValidationException("Почта не может быть пустой");
-        }
-        if (!user.getEmail().contains("@")) {
-            throw new ValidationException("Почта должна содержать символ @");
-        }
-        if (user.getLogin() == null || user.getLogin().isBlank())
-            throw new ValidationException("Логин не может быть пустым и содержать пробелы");
-
-        if (user.getBirthday().isAfter(LocalDate.now()))
-            throw new ValidationException("Дата рождения не может быть установлена в будущем времени");
-    }
+//
+//    private void validateUser(User user) {
+//        if (user.getEmail() == null || user.getEmail().isBlank()) {
+//            throw new ValidationException("Почта не может быть пустой");
+//        }
+//        if (!user.getEmail().contains("@")) {
+//            throw new ValidationException("Почта должна содержать символ @");
+//        }
+//        if (user.getLogin() == null || user.getLogin().isBlank())
+//            throw new ValidationException("Логин не может быть пустым и содержать пробелы");
+//
+//        if (user.getBirthday().isAfter(LocalDate.now()))
+//            throw new ValidationException("Дата рождения не может быть установлена в будущем времени");
+//    }
 
     private long getNextId() {
         long currentMaxId = users.keySet()
