@@ -1,7 +1,5 @@
 package ru.yandex.practicum.filmorate.exception;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -41,11 +39,4 @@ public class GlobalExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
-}
-
-@AllArgsConstructor
-@Data
-class ErrorResponse {
-    int code;
-    String message;
 }
