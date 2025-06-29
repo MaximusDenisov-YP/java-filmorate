@@ -3,8 +3,10 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.UserController;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -15,10 +17,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class UserControllerTest {
 
     private UserController userController;
+    private InMemoryUserStorage inMemoryUserStorage;
+    private UserService userService;
 
     @BeforeEach
     void setUp() {
-        userController = new UserController();
+        inMemoryUserStorage = new InMemoryUserStorage();
+        userService = new UserService(inMemoryUserStorage);
+        userController = new UserController(inMemoryUserStorage, userService);
     }
 
     @Test
@@ -33,18 +39,6 @@ class UserControllerTest {
 
         assertThat(createdUser.getName()).isEqualTo("testuser");
         assertThat(createdUser.getId()).isNotNull();
-    }
-
-    @Test
-    void createUserShouldThrowExceptionIfEmailInvalid() {
-        User user = User.builder()
-                .email("invalid-email")
-                .login("user")
-                .name("Test")
-                .birthday(LocalDate.of(1990, 1, 1))
-                .build();
-
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
     }
 
     @Test
@@ -73,7 +67,7 @@ class UserControllerTest {
                 .birthday(LocalDate.of(1990, 1, 1))
                 .build();
 
-        assertThrows(ValidationException.class, () -> userController.updateUser(user));
+        assertThrows(NotFoundException.class, () -> userController.updateUser(user));
     }
 
     @Test

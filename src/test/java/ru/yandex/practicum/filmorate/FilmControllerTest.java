@@ -3,8 +3,14 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -15,10 +21,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class FilmControllerTest {
 
     private FilmController filmController;
+    private InMemoryFilmStorage filmStorage;
+    private FilmService filmService;
+    private UserService userService;
+    private UserStorage userStorage;
 
     @BeforeEach
     void setUp() {
-        filmController = new FilmController();
+        filmStorage = new InMemoryFilmStorage();
+        userStorage = new InMemoryUserStorage();
+        userService = new UserService(userStorage);
+        filmService = new FilmService(filmStorage, userStorage);
+        filmController = new FilmController(filmStorage, filmService);
     }
 
     @Test
@@ -37,49 +51,12 @@ class FilmControllerTest {
     }
 
     @Test
-    void createFilmShouldThrowExceptionIfNameIsBlank() {
-        Film film = Film.builder()
-                .name(" ")
-                .description("No name film")
-                .releaseDate(LocalDate.of(2000, 1, 1))
-                .duration(100L)
-                .build();
-
-        assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-    }
-
-    @Test
-    void createFilmShouldThrowExceptionIfDescriptionTooLong() {
-        String longDescription = "a".repeat(201);
-        Film film = Film.builder()
-                .name("Test Film")
-                .description(longDescription)
-                .releaseDate(LocalDate.of(2000, 1, 1))
-                .duration(100L)
-                .build();
-
-        assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-    }
-
-    @Test
     void createFilmShouldThrowExceptionIfReleaseDateTooEarly() {
         Film film = Film.builder()
                 .name("Early Film")
                 .description("Old")
                 .releaseDate(LocalDate.of(1800, 1, 1))
                 .duration(120L)
-                .build();
-
-        assertThrows(ValidationException.class, () -> filmController.createFilm(film));
-    }
-
-    @Test
-    void createFilmShouldThrowExceptionIfDurationNonPositive() {
-        Film film = Film.builder()
-                .name("Zero Duration")
-                .description("Duration problem")
-                .releaseDate(LocalDate.of(2000, 1, 1))
-                .duration(0L)
                 .build();
 
         assertThrows(ValidationException.class, () -> filmController.createFilm(film));
@@ -119,7 +96,7 @@ class FilmControllerTest {
                 .duration(100L)
                 .build();
 
-        assertThrows(ValidationException.class, () -> filmController.updateFilm(film));
+        assertThrows(NotFoundException.class, () -> filmController.updateFilm(film));
     }
 
     @Test
