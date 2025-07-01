@@ -6,7 +6,9 @@ import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
+import ru.yandex.practicum.filmorate.storage.friendship.InMemoryFriendshipStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -17,14 +19,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class UserControllerTest {
 
     private UserController userController;
+    private FriendshipStorage friendshipStorage;
     private InMemoryUserStorage inMemoryUserStorage;
     private UserService userService;
 
     @BeforeEach
     void setUp() {
         inMemoryUserStorage = new InMemoryUserStorage();
-        userService = new UserService(inMemoryUserStorage);
-        userController = new UserController(inMemoryUserStorage, userService);
+        friendshipStorage = new InMemoryFriendshipStorage();
+        userService = new UserService(inMemoryUserStorage, friendshipStorage);
+        userController = new UserController(inMemoryUserStorage, friendshipStorage, userService);
     }
 
     @Test

@@ -13,5 +13,7 @@ public interface FilmStorage {
 
     Film updateFilm(Film film);
 
+    Film deleteFilm(Film film);
+
     Collection<Film> getPopularFilms(int count);
 }

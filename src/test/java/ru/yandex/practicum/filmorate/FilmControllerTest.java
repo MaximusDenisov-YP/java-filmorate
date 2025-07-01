@@ -8,9 +8,14 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.storage.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
+import ru.yandex.practicum.filmorate.storage.friendship.InMemoryFriendshipStorage;
+import ru.yandex.practicum.filmorate.storage.like.InMemoryLikeStorage;
+import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -21,17 +26,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class FilmControllerTest {
 
     private FilmController filmController;
-    private InMemoryFilmStorage filmStorage;
+    private FilmStorage filmStorage;
+    private UserStorage userStorage;
+    private FriendshipStorage friendshipStorage;
+    private LikeStorage likeStorage;
     private FilmService filmService;
     private UserService userService;
-    private UserStorage userStorage;
+
 
     @BeforeEach
     void setUp() {
         filmStorage = new InMemoryFilmStorage();
         userStorage = new InMemoryUserStorage();
-        userService = new UserService(userStorage);
-        filmService = new FilmService(filmStorage, userStorage);
+        likeStorage = new InMemoryLikeStorage();
+        friendshipStorage = new InMemoryFriendshipStorage();
+        userService = new UserService(userStorage, friendshipStorage);
+        filmService = new FilmService(filmStorage, userStorage, likeStorage);
         filmController = new FilmController(filmStorage, filmService);
     }
 

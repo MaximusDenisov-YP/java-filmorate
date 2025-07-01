@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
@@ -19,11 +19,11 @@ public class Friendship {
     private Long userIdTo; // Пользователь, которому отправлен запрос
     @NotNull
     private FriendStatus friendStatus; // Статус дружбы
-    private LocalDateTime createdAt; // Дата создания связи
+    private LocalDate createdAt; // Дата создания связи
 
     public enum FriendStatus {
-        UNCONFIRMED("Неподтвержденная дружба"),
-        CONFIRMED("Подтвержденная дружба");
+        REQUESTED("Неподтвержденная дружба"),
+        ACCEPTED("Подтвержденная дружба");
 
         private final String description;
 

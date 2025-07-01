@@ -1,28 +1,29 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class UserService {
     private final UserStorage userStorage;
+    private final FriendshipStorage friendshipStorage;
 
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, FriendshipStorage friendshipStorage) {
         this.userStorage = userStorage;
+        this.friendshipStorage = friendshipStorage;
     }
 
     public List<User> getFriends(long id) {
-//        checkUser(id, "Указанный пользователь - не существует!");
-        Set<Long> friendsIds = userStorage.getUserById(id).getFriends();
-        return userStorage.getUsers()
-                .stream()
-                .filter(user -> friendsIds.contains(user.getId()))
-                .toList();
+        return friendshipStorage.getFriends(id);
     }
 
     public List<User> getCommonFriends(long id, long friendId) {
@@ -37,13 +38,35 @@ public class UserService {
                 .toList();
     }
 
-    public void addFriend(long id, long friendId) {
-        userStorage.getUserById(id).getFriends().add(friendId);
-        userStorage.getUserById(friendId).getFriends().add(id);
+    public void sendFriendRequest(long fromUserId, long toUserId) {
+//        if (userToUpdate.getFriends().contains(toUserId)) {
+//            throw new FriendshipException("Пользователь уже находится в списке друзей пользователя-отправителя");
+//        }
+        if (friendshipStorage.getFriendRequestsUserIdsForUser(toUserId).contains(fromUserId)) {
+            friendshipStorage.acceptFriendRequest(toUserId, fromUserId);
+        }
+        log.info("ОТПРАВЛЕН ЗАПРОС ОТ ID {} к ID {}", fromUserId, toUserId);
+        friendshipStorage.sendFriendRequest(fromUserId, toUserId);
     }
 
-    public void removeFriend(long id, long friendId) {
-        userStorage.getUserById(id).getFriends().remove(friendId);
-        userStorage.getUserById(friendId).getFriends().remove(id);
+    public void removeFriend(long fromUserId, long toUserId) {
+        friendshipStorage.removeFriendship(fromUserId, toUserId);
+        User firstUser = userStorage.getUserById(fromUserId);
+        User secondUser = userStorage.getUserById(toUserId);
+        firstUser.getFriends().remove(toUserId);
+        secondUser.getFriends().remove(fromUserId);
+        userStorage.updateUser(firstUser);
+        userStorage.updateUser(secondUser);
+    }
+
+    public void acceptFriendRequest(long fromUserId, long toUserId) {
+        friendshipStorage.acceptFriendRequest(fromUserId, toUserId);
+    }
+
+    public void rejectFriendRequest(long fromUserId, long toUserId) {
+        friendshipStorage.rejectFriendRequest(fromUserId, toUserId);
+        User userToUpdate = userStorage.getUserById(toUserId);
+        userToUpdate.getFriends().remove(fromUserId);
+        userStorage.updateUser(userToUpdate);
     }
 }

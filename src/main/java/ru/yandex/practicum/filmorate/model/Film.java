@@ -4,14 +4,18 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.Set;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Film {
 
     private long id;
@@ -25,9 +29,9 @@ public class Film {
     private Long duration;
     private Set<Long> usersLikes; // После проверки схемы DB - заменить обычным целочисленным значением, так как логика приложения будет изменена.
     private Genre genre;
-    private MpaRating rating;
+    private MpaRating mpaRating;
 
-    enum Genre {
+    public enum Genre {
         COMEDY("Комедия"),
         DRAMA("Драма"),
         CARTOON("Мультфильм"),
@@ -46,7 +50,7 @@ public class Film {
         }
     }
 
-    enum MpaRating {
+    public enum MpaRating {
         G("Без возрастных ограничений"),
         PG("Рекомендуется просмотр с родителями"),
         PG_13("Детям до 13 лет нежелательно"),

@@ -58,6 +58,18 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(FriendshipException.class)
+    public ResponseEntity<ErrorResponse> handleFriendshipException(FriendshipException exc) {
+        log.warn(exc.getMessage(), exc);
+        return new ResponseEntity<>(
+                new ErrorResponse(
+                        HttpStatus.OK.value(),
+                        exc.getMessage()
+                ),
+                HttpStatus.OK
+        );
+    }
+
     @ExceptionHandler(Throwable.class)
     public ResponseEntity<ErrorResponse> handleOtherException(Throwable exc) {
         log.warn(exc.getMessage(), exc);

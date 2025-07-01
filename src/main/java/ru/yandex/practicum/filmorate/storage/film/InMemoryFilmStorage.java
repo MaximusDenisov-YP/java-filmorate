@@ -54,6 +54,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
+    public Film deleteFilm(Film film) {
+        return null;
+    }
+
+    @Override
     public Collection<Film> getPopularFilms(int count) {
         Comparator<Film> comparator = Comparator.comparing(film -> film.getUsersLikes().size());
         return films.values().stream()

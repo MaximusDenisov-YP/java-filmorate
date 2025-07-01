@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.storage;
+package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -50,26 +50,17 @@ public class InMemoryUserStorage implements UserStorage {
         return currentUser;
     }
 
+    @Override
+    public User deleteUser(User user) {
+        return null;
+    }
+
     public User getUserById(long id) {
         if (users.get(id) == null) {
             throw new NotFoundException(String.format("Пользователя с ID %d - не существует!", id));
         }
         return users.get(id);
     }
-//
-//    private void validateUser(User user) {
-//        if (user.getEmail() == null || user.getEmail().isBlank()) {
-//            throw new ValidationException("Почта не может быть пустой");
-//        }
-//        if (!user.getEmail().contains("@")) {
-//            throw new ValidationException("Почта должна содержать символ @");
-//        }
-//        if (user.getLogin() == null || user.getLogin().isBlank())
-//            throw new ValidationException("Логин не может быть пустым и содержать пробелы");
-//
-//        if (user.getBirthday().isAfter(LocalDate.now()))
-//            throw new ValidationException("Дата рождения не может быть установлена в будущем времени");
-//    }
 
     private long getNextId() {
         long currentMaxId = users.keySet()

@@ -2,11 +2,13 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
 
@@ -15,10 +17,12 @@ import java.util.Collection;
 @Validated
 public class UserController {
     private final UserStorage userStorage;
+    private final FriendshipStorage friendshipStorage;
     private final UserService userService;
 
-    public UserController(UserStorage userStorage, UserService userService) {
+    public UserController(@Qualifier("userDbStorage") UserStorage userStorage, FriendshipStorage friendshipStorage, UserService userService) {
         this.userStorage = userStorage;
+        this.friendshipStorage = friendshipStorage;
         this.userService = userService;
     }
 
@@ -39,7 +43,7 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@Positive @PathVariable long id, @Positive @PathVariable long friendId) {
-        userService.addFriend(id, friendId);
+        userService.sendFriendRequest(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
@@ -47,6 +51,7 @@ public class UserController {
         userService.removeFriend(id, friendId);
     }
 
+    // TODO: Проверить, задублировал логику добавления в друзья в UserStorage и FriendshipStorage
     @GetMapping("/{id}/friends")
     public Collection<User> getFriends(@Positive @PathVariable long id) {
         return userService.getFriends(id);
