@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class FilmController {
     private final FilmStorage filmStorage;
     private final FilmService filmService;
 
-    public FilmController(FilmStorage filmStorage, FilmService filmService) {
+    public FilmController(@Qualifier("filmDbStorage") FilmStorage filmStorage, FilmService filmService) {
         this.filmStorage = filmStorage;
         this.filmService = filmService;
     }
@@ -39,6 +40,9 @@ public class FilmController {
         return filmStorage.updateFilm(film);
     }
 
+    @DeleteMapping
+    public Film deleteFilm(@Valid @RequestBody Film film) { return filmStorage.deleteFilm(film); }
+
     @GetMapping("/popular")
     public Collection<Film> getPopularFilms(@Positive @DefaultValue(value = "10") @Positive @RequestParam int count) {
         return filmStorage.getPopularFilms(count);
@@ -50,7 +54,7 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void removeFilm(@Positive @PathVariable long id, @Positive @PathVariable long userId) {
+    public void removeLike(@Positive @PathVariable long id, @Positive @PathVariable long userId) {
         filmService.removeLike(id, userId);
     }
 }
