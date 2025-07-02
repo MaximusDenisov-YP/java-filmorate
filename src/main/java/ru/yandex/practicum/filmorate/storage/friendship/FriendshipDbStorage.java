@@ -78,13 +78,13 @@ public class FriendshipDbStorage implements FriendshipStorage {
     public List<User> getFriends(long userId) {
         userStorage.hasUser(userId);
         String sql = """
-        SELECT u.* FROM users u
-        JOIN friendship f ON (
-            (f.user_id_from = ? AND f.user_id_to = u.id AND f.friend_status IN ('ACCEPTED', 'REQUESTED'))
-            OR
-            (f.user_id_to = ? AND f.user_id_from = u.id AND f.friend_status = 'ACCEPTED')
-        )
-        """;
+                SELECT u.* FROM users u
+                JOIN friendship f ON (
+                    (f.user_id_from = ? AND f.user_id_to = u.id AND f.friend_status IN ('ACCEPTED', 'REQUESTED'))
+                    OR
+                    (f.user_id_to = ? AND f.user_id_from = u.id AND f.friend_status = 'ACCEPTED')
+                )
+                """;
 
         return jdbcTemplate.query(sql, this::mapRowToUser, userId, userId);
     }
@@ -93,13 +93,13 @@ public class FriendshipDbStorage implements FriendshipStorage {
     public List<User> getRequestedFriends(long userId) {
         userStorage.hasUser(userId);
         String sql = """
-        SELECT u.* FROM users u
-        JOIN friendship f ON (
-            (f.user_id_from = ? AND f.user_id_to = u.id AND f.friend_status IN ('ACCEPTED', 'REQUESTED'))
-            OR
-            (f.user_id_to = ? AND f.user_id_from = u.id AND f.friend_status = 'ACCEPTED')
-        )
-        """;
+                SELECT u.* FROM users u
+                JOIN friendship f ON (
+                    (f.user_id_from = ? AND f.user_id_to = u.id AND f.friend_status IN ('ACCEPTED', 'REQUESTED'))
+                    OR
+                    (f.user_id_to = ? AND f.user_id_from = u.id AND f.friend_status = 'ACCEPTED')
+                )
+                """;
 
         return jdbcTemplate.query(sql, this::mapRowToUser, userId, userId);
     }

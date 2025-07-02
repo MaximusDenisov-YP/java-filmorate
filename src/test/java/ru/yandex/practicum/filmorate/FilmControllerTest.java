@@ -9,8 +9,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
-import ru.yandex.practicum.filmorate.storage.friendship.InMemoryFriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.genre.InMemoryGenreStorage;
 import ru.yandex.practicum.filmorate.storage.like.InMemoryLikeStorage;
