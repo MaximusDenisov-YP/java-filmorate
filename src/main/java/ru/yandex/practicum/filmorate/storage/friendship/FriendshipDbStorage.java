@@ -1,10 +1,10 @@
 package ru.yandex.practicum.filmorate.storage.friendship;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -12,10 +12,15 @@ import java.util.HashSet;
 import java.util.List;
 
 @Repository
-@RequiredArgsConstructor
 public class FriendshipDbStorage implements FriendshipStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final UserDbStorage userStorage;
+
+    public FriendshipDbStorage(JdbcTemplate jdbcTemplate, UserDbStorage userStorage) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.userStorage = userStorage;
+    }
 
     @Override
     public Friendship getFriendship(long fromUserId, long toUserId) {
@@ -29,6 +34,7 @@ public class FriendshipDbStorage implements FriendshipStorage {
 
     @Override
     public void sendFriendRequest(long fromUserId, long toUserId) {
+        userStorage.hasUser(toUserId);
         String sql = """
                 INSERT INTO friendship (user_id_from, user_id_to, friend_status)
                 VALUES (?, ?, 'REQUESTED')
@@ -58,6 +64,8 @@ public class FriendshipDbStorage implements FriendshipStorage {
 
     @Override
     public void removeFriendship(long fromUserId, long toUserId) {
+        userStorage.hasUser(fromUserId);
+        userStorage.hasUser(toUserId);
         String sql = """
                 DELETE FROM friendship
                 WHERE (user_id_from = ? AND user_id_to = ?)
@@ -68,6 +76,22 @@ public class FriendshipDbStorage implements FriendshipStorage {
 
     @Override
     public List<User> getFriends(long userId) {
+        userStorage.hasUser(userId);
+        String sql = """
+        SELECT u.* FROM users u
+        JOIN friendship f ON (
+            (f.user_id_from = ? AND f.user_id_to = u.id AND f.friend_status IN ('ACCEPTED', 'REQUESTED'))
+            OR
+            (f.user_id_to = ? AND f.user_id_from = u.id AND f.friend_status = 'ACCEPTED')
+        )
+        """;
+
+        return jdbcTemplate.query(sql, this::mapRowToUser, userId, userId);
+    }
+
+    @Override
+    public List<User> getRequestedFriends(long userId) {
+        userStorage.hasUser(userId);
         String sql = """
         SELECT u.* FROM users u
         JOIN friendship f ON (

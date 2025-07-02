@@ -5,10 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -23,7 +20,6 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User createUser(User user) {
-//        validateUser(user);
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
@@ -35,8 +31,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User updateUser(User user) {
-//        validateUser(user);
+    public Optional<User> updateUser(User user) {
         User currentUser = users.get(user.getId());
         if (currentUser == null) {
             log.warn("Обновление не выполнено — пользователь с ID={} не найден", user.getId());
@@ -47,19 +42,18 @@ public class InMemoryUserStorage implements UserStorage {
         currentUser.setBirthday(user.getBirthday());
         currentUser.setLogin(user.getLogin());
         log.info("Пользователь с ID={} обновлён: {}", currentUser.getId(), currentUser);
-        return currentUser;
+        return Optional.of(currentUser);
     }
 
     @Override
-    public User deleteUser(User user) {
-        return null;
+    public void deleteUser(User user) {
     }
 
-    public User getUserById(long id) {
+    public Optional<User> getUserById(long id) {
         if (users.get(id) == null) {
             throw new NotFoundException(String.format("Пользователя с ID %d - не существует!", id));
         }
-        return users.get(id);
+        return Optional.of(users.get(id));
     }
 
     private long getNextId() {

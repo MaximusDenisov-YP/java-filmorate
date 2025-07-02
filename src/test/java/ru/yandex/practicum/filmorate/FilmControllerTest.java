@@ -7,13 +7,16 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.friendship.InMemoryFriendshipStorage;
+import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.genre.InMemoryGenreStorage;
 import ru.yandex.practicum.filmorate.storage.like.InMemoryLikeStorage;
 import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
+import ru.yandex.practicum.filmorate.storage.mpa.InMemoryMpaStorage;
+import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -28,21 +31,21 @@ class FilmControllerTest {
     private FilmController filmController;
     private FilmStorage filmStorage;
     private UserStorage userStorage;
-    private FriendshipStorage friendshipStorage;
     private LikeStorage likeStorage;
     private FilmService filmService;
-    private UserService userService;
-
+    private GenreStorage genreStorage;
+    private MpaStorage mpaStorage;
 
     @BeforeEach
     void setUp() {
         filmStorage = new InMemoryFilmStorage();
         userStorage = new InMemoryUserStorage();
         likeStorage = new InMemoryLikeStorage();
-        friendshipStorage = new InMemoryFriendshipStorage();
-        userService = new UserService(userStorage, friendshipStorage);
-        filmService = new FilmService(filmStorage, userStorage, likeStorage);
-        filmController = new FilmController(filmStorage, filmService);
+        genreStorage = new InMemoryGenreStorage();
+        mpaStorage = new InMemoryMpaStorage();
+        filmService = new FilmService(filmStorage, userStorage, likeStorage,
+                mpaStorage, genreStorage);
+        filmController = new FilmController(filmService);
     }
 
     @Test

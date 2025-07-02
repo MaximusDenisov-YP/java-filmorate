@@ -20,11 +20,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film getFilmById(long id) {
+    public Optional<Film> getFilmById(long id) {
         if (films.get(id) == null) {
             throw new NotFoundException(String.format("Фильм с ID %d - не существует", id));
         }
-        return films.get(id);
+        return Optional.ofNullable(films.get(id));
     }
 
     @Override
@@ -54,12 +54,12 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film deleteFilm(Film film) {
-        return null;
+    public void deleteFilm(Long id) {
+        films.remove(id);
     }
 
     @Override
-    public Collection<Film> getPopularFilms(int count) {
+    public List<Film> getPopularFilms(int count) {
         Comparator<Film> comparator = Comparator.comparing(film -> film.getUsersLikes().size());
         return films.values().stream()
                 .sorted(comparator.reversed())

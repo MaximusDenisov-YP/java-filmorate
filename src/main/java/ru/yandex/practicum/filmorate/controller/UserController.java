@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
@@ -16,29 +18,30 @@ import java.util.Collection;
 @RequestMapping("/users")
 @Validated
 public class UserController {
-    private final UserStorage userStorage;
-    private final FriendshipStorage friendshipStorage;
     private final UserService userService;
 
     public UserController(@Qualifier("userDbStorage") UserStorage userStorage, FriendshipStorage friendshipStorage, UserService userService) {
-        this.userStorage = userStorage;
-        this.friendshipStorage = friendshipStorage;
         this.userService = userService;
     }
 
     @GetMapping
     public Collection<User> getUsers() {
-        return userStorage.getUsers();
+        return userService.getUsers();
     }
 
     @PostMapping
-    public User createUser(@Valid @RequestBody User user) {
-        return userStorage.createUser(user);
+    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
+        return new ResponseEntity<>(userService.createUser(user), HttpStatus.OK);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        return userStorage.updateUser(user);
+        return userService.updateUser(user);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
@@ -51,7 +54,6 @@ public class UserController {
         userService.removeFriend(id, friendId);
     }
 
-    // TODO: Проверить, задублировал логику добавления в друзья в UserStorage и FriendshipStorage
     @GetMapping("/{id}/friends")
     public Collection<User> getFriends(@Positive @PathVariable long id) {
         return userService.getFriends(id);

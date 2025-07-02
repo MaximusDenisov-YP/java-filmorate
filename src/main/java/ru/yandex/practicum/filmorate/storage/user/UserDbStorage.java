@@ -1,23 +1,25 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
-@Repository
+@Slf4j
 @RequiredArgsConstructor
+@Repository
+@Qualifier("userDbStorage")
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
@@ -52,7 +54,8 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User updateUser(User user) {
+    public Optional<User> updateUser(User user) {
+        hasUser(user.getId());
         String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
         jdbcTemplate.update(sql,
                 user.getEmail(),
@@ -60,30 +63,31 @@ public class UserDbStorage implements UserStorage {
                 user.getName(),
                 Date.valueOf(user.getBirthday()),
                 user.getId());
-        return user;
+        return Optional.of(user);
     }
 
     @Override
-    public User deleteUser(User user) {
+    public void deleteUser(User user) {
+        hasUser(user.getId());
         String sql = "DELETE FROM users WHERE id = ?";
         jdbcTemplate.update(sql, user.getId());
-        return user;
     }
 
     @Override
-    public User getUserById(long id) {
+    public Optional<User> getUserById(long id) {
+        hasUser(id);
         String sql = "SELECT * FROM users WHERE id = ?";
-        return jdbcTemplate.queryForObject(sql, this::mapRowToUser, id);
+        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, this::mapRowToUser, id));
     }
 
     private Set<Long> getFriendIds(long userId) {
         String sql = """
-            SELECT user_id_to FROM friendship
-            WHERE user_id_from = ? AND friend_status = 'ACCEPTED'
-            UNION
-            SELECT user_id_from FROM friendship
-            WHERE user_id_to = ? AND friend_status = 'ACCEPTED'
-            """;
+                SELECT user_id_to FROM friendship
+                WHERE user_id_from = ? AND friend_status = 'ACCEPTED'
+                UNION
+                SELECT user_id_from FROM friendship
+                WHERE user_id_to = ? AND friend_status = 'ACCEPTED'
+                """;
         return new HashSet<>(jdbcTemplate.queryForList(sql, Long.class, userId, userId));
     }
 
@@ -95,5 +99,13 @@ public class UserDbStorage implements UserStorage {
         user.setName(rs.getString("name"));
         user.setBirthday(rs.getDate("birthday").toLocalDate());
         return user;
+    }
+
+    public boolean hasUser(Long userId) {
+        if (!getUsers().stream().map(User::getId).toList().contains(userId)) {
+            log.warn("Операция не выполнена — пользователь с ID={} не найден", userId);
+            throw new NotFoundException("Пользователь с указанным ID - не найден");
+        }
+        return true;
     }
 }

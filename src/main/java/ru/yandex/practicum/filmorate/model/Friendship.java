@@ -12,14 +12,14 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class Friendship {
 
-    private Long friendshipId; // Уникальный идентификатор дружбы
+    private Long friendshipId;
     @NotNull
-    private Long userIdFrom; // Пользователь, отправивший запрос
+    private Long userIdFrom;
     @NotNull
-    private Long userIdTo; // Пользователь, которому отправлен запрос
+    private Long userIdTo;
     @NotNull
-    private FriendStatus friendStatus; // Статус дружбы
-    private LocalDate createdAt; // Дата создания связи
+    private FriendStatus friendStatus;
+    private LocalDate createdAt;
 
     public enum FriendStatus {
         REQUESTED("Неподтвержденная дружба"),

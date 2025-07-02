@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.friendship.InMemoryFriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -20,7 +21,7 @@ class UserControllerTest {
 
     private UserController userController;
     private FriendshipStorage friendshipStorage;
-    private InMemoryUserStorage inMemoryUserStorage;
+    private UserStorage inMemoryUserStorage;
     private UserService userService;
 
     @BeforeEach
@@ -39,7 +40,7 @@ class UserControllerTest {
                 .name(" ")
                 .birthday(LocalDate.of(1990, 1, 1))
                 .build();
-        User createdUser = userController.createUser(user);
+        User createdUser = userController.createUser(user).getBody();
 
         assertThat(createdUser.getName()).isEqualTo("testuser");
         assertThat(createdUser.getId()).isNotNull();
@@ -53,7 +54,7 @@ class UserControllerTest {
                 .name("Name")
                 .birthday(LocalDate.of(1990, 1, 1))
                 .build();
-        User created = userController.createUser(user);
+        User created = userController.createUser(user).getBody();
 
         created.setName("Updated Name");
         User updated = userController.updateUser(created);

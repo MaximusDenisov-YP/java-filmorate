@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -27,44 +28,8 @@ public class Film {
     private LocalDate releaseDate;
     @Min(1)
     private Long duration;
-    private Set<Long> usersLikes; // После проверки схемы DB - заменить обычным целочисленным значением, так как логика приложения будет изменена.
-    private Genre genre;
-    private MpaRating mpaRating;
+    private Set<Long> usersLikes;
+    private List<Genre> genres;
+    private Mpa mpa;
 
-    public enum Genre {
-        COMEDY("Комедия"),
-        DRAMA("Драма"),
-        CARTOON("Мультфильм"),
-        THRILLER("Триллер"),
-        DOCUMENTARY("Документальный"),
-        ACTION("Боевик");
-
-        private final String localeName;
-
-        Genre(String localeName) {
-            this.localeName = localeName;
-        }
-
-        public String getLocaleName() {
-            return localeName;
-        }
-    }
-
-    public enum MpaRating {
-        G("Без возрастных ограничений"),
-        PG("Рекомендуется просмотр с родителями"),
-        PG_13("Детям до 13 лет нежелательно"),
-        R("Только в сопровождении взрослых (до 17 лет)"),
-        NC_17("Просмотр запрещён лицам до 18 лет");
-
-        private final String description;
-
-        MpaRating(String description) {
-            this.description = description;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-    }
 }

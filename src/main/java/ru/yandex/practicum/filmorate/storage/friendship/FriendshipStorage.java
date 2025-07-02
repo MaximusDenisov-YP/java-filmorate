@@ -12,5 +12,6 @@ public interface FriendshipStorage {
     void rejectFriendRequest(long fromUserId, long toUserId);
     void removeFriendship(long fromUserId, long toUserId);
     List<Long> getFriendRequestsUserIdsForUser(long userId);
+    public List<User> getRequestedFriends(long userId);
     List<User> getFriends(long userId);
 }

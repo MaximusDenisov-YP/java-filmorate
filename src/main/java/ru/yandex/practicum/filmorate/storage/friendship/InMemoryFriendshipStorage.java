@@ -37,6 +37,11 @@ public class InMemoryFriendshipStorage implements FriendshipStorage {
     }
 
     @Override
+    public List<User> getRequestedFriends(long userId) {
+        return null;
+    }
+
+    @Override
     public List<User> getFriends(long userId) {
         return null;
     }
