@@ -41,7 +41,9 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteFilm(@PathVariable @Positive long id) { filmService.deleteFilm(id); }
+    public void deleteFilm(@PathVariable @Positive long id) {
+        filmService.deleteFilm(id);
+    }
 
     @GetMapping("/popular")
     public Collection<Film> getPopularFilms(@Positive @Positive @RequestParam(defaultValue = "10") int count) {
