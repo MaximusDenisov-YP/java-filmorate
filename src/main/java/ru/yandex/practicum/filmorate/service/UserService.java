@@ -45,6 +45,7 @@ public class UserService {
         return userStorage.getUserById(id)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id " + id + " не найден"));
     }
+
     public List<User> getFriends(long id) {
         return friendshipStorage.getFriends(id);
     }
@@ -74,6 +75,5 @@ public class UserService {
             friendshipStorage.removeFriendship(fromUserId, toUserId);
         }
     }
-
 
 }
