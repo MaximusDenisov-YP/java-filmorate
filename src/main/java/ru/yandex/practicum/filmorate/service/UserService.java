@@ -47,6 +47,7 @@ public class UserService {
     }
 
     public List<User> getFriends(long id) {
+        getUserById(id);
         return friendshipStorage.getFriends(id);
     }
 
@@ -57,6 +58,8 @@ public class UserService {
     }
 
     public void sendFriendRequest(long fromUserId, long toUserId) {
+        getUserById(fromUserId);
+        getUserById(toUserId);
         if (friendshipStorage.getFriendRequestsUserIdsForUser(toUserId).contains(fromUserId)) {
             log.info("ОТПРАВЛЕН ЗАПРОС ОТ ID {} к ID {}", fromUserId, toUserId);
             log.info("ДРУЖБА АВТОМАТИЧЕСКИ ПРИНЯТА ОТ ID {} к ID {}", toUserId, fromUserId);
@@ -68,7 +71,8 @@ public class UserService {
     }
 
     public void removeFriend(long fromUserId, long toUserId) {
-        userStorage.getUserById(toUserId);
+        getUserById(fromUserId);
+        getUserById(toUserId);
         log.info("ОТПРАВЛЕН ЗАПРОС НА УДАЛЕНИЕ ID {} к ID {}", fromUserId, toUserId);
         List<User> friendIdsFrom = friendshipStorage.getFriends(fromUserId);
         if (friendIdsFrom != null && friendIdsFrom.stream().map(User::getId).anyMatch(id -> id == toUserId)) {

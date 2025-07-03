@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 public class GenreDbStorage implements GenreStorage {
@@ -16,6 +17,7 @@ public class GenreDbStorage implements GenreStorage {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    @Override
     public Optional<Genre> getById(int id) {
         String sql = "SELECT * FROM genres WHERE id = ?";
         List<Genre> results = jdbcTemplate.query(
@@ -26,9 +28,19 @@ public class GenreDbStorage implements GenreStorage {
         return results.stream().findFirst();
     }
 
+    @Override
     public List<Genre> getAll() {
         String sql = "SELECT * FROM genres ORDER BY id";
         return jdbcTemplate.query(sql,
                 (rs, rowNum) -> new Genre(rs.getInt("id"), rs.getString("name")));
     }
+
+    @Override
+    public List<Genre> getByIds(List<Integer> ids) {
+        String inSql = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
+        String sql = "SELECT * FROM genres WHERE id IN (" + inSql + ")";
+        return jdbcTemplate.query(sql,
+                (rs, rowNum) -> new Genre(rs.getInt("id"), rs.getString("name")));
+    }
+
 }

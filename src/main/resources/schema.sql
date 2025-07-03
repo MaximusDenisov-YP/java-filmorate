@@ -1,9 +1,9 @@
 CREATE TABLE IF NOT EXISTS users
 (
     id       BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    email    VARCHAR(255) NOT NULL UNIQUE,
-    login    VARCHAR(255) NOT NULL UNIQUE,
-    name     VARCHAR(255),
+    email    VARCHAR(50) NOT NULL UNIQUE,
+    login    VARCHAR(30) NOT NULL UNIQUE,
+    name     VARCHAR(30),
     birthday DATE
 );
 
@@ -17,26 +17,25 @@ CREATE TABLE IF NOT EXISTS friendship
     FOREIGN KEY (user_id_from) REFERENCES users (id),
     FOREIGN KEY (user_id_to) REFERENCES users (id)
 );
-
 CREATE TABLE IF NOT EXISTS genres
 (
     id   INT PRIMARY KEY,
-    name VARCHAR NOT NULL
+    name VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS mpa_ratings
 (
     id   INT PRIMARY KEY,
-    name VARCHAR NOT NULL
+    name VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS films
 (
     id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name         VARCHAR NOT NULL,
+    name         VARCHAR(100) NOT NULL,
     description  TEXT,
     release_date DATE,
-    duration     BIGINT  NOT NULL,
+    duration     BIGINT NOT NULL,
     mpa_rating   INT
 --     CONSTRAINT fk_mpa_rating FOREIGN KEY (mpa_rating) REFERENCES mpa_ratings (id)
 );
@@ -46,7 +45,7 @@ CREATE TABLE IF NOT EXISTS likes
     id      BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     film_id BIGINT,
     user_id BIGINT,
-    FOREIGN KEY (film_id) REFERENCES FILMS (id),
+    FOREIGN KEY (film_id) REFERENCES films (id),
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
 

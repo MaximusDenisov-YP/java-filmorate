@@ -55,7 +55,7 @@ public class FilmService {
 
     public Film createFilm(Film film) {
         validateFilm(film, false);
-        film.setMpa(resolveMpa(film.getMpa()));
+        film.setMpa(resolveMpa(film.getMpa()).get());
         film.setGenres(resolveGenres(film.getGenres()));
         log.info("Фильм успешно создан: {}", film);
         return filmStorage.createFilm(film);
@@ -107,10 +107,8 @@ public class FilmService {
     }
 
     public Optional<Genre> getGenreById(int id) {
-        if (id > 6) {
-            throw new NotFoundException(String.format("Жанра фильма с ID %s - не существует!", id));
-        }
-        return genreDbStorage.getById(id);
+        return Optional.ofNullable(genreDbStorage.getById(id)
+                .orElseThrow(() -> new NotFoundException("Жанр фильма с ID %d - не существует!".formatted(id))));
     }
 
     public List<Mpa> getAllRatings() {
@@ -118,10 +116,8 @@ public class FilmService {
     }
 
     public Mpa getRatingById(int id) {
-        if (id > 5) {
-            throw new NotFoundException(String.format("Возрастного рейтинга с ID %s - не существует!", id));
-        }
-        return mpaDbStorage.getById(id);
+        return mpaDbStorage.getById(id)
+                .orElseThrow(() -> new NotFoundException("Возрастного рейтинга с ID %d - не существует!".formatted(id)));
     }
 
     private void validateFilm(Film film, boolean isUpdate) {
@@ -134,23 +130,30 @@ public class FilmService {
         if (film.getMpa() == null) {
             film.setMpa(new Mpa(0, "Not Rated"));
         }
-        if (film.getMpa().getId() > 5) {
+        if (film.getMpa().getId() > mpaDbStorage.getAll().size()) {
             throw new NotFoundException("Запрашиваемого возрастного рейтинга - не существует!");
         }
     }
 
-    private Mpa resolveMpa(Mpa mpa) {
-        return mpa == null ? new Mpa(0, "Not Rated") : mpaDbStorage.getById(mpa.getId());
+    private Optional<Mpa> resolveMpa(Mpa mpa) {
+        return mpa == null ? Optional.of(new Mpa(0, "Not Rated")) : mpaDbStorage.getById(mpa.getId());
     }
 
     private List<Genre> resolveGenres(List<Genre> genres) {
         if (genres == null || genres.isEmpty()) return List.of();
-        for (Genre g : genres) {
-            genreDbStorage.getById(g.getId()).orElseThrow(
-                    () -> new NotFoundException("Жанр с id " + g.getId() + " не найден")
-            );
+
+        List<Integer> genreIds = genres.stream()
+                .map(Genre::getId)
+                .distinct()
+                .toList();
+
+        List<Genre> resolvedGenres = genreDbStorage.getByIds(genreIds);
+
+        if (resolvedGenres.size() != genreIds.size()) {
+            throw new NotFoundException("Один или несколько жанров не найдены");
         }
-        return genres;
+
+        return resolvedGenres;
     }
 
 }

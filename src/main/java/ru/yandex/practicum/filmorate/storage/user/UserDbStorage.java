@@ -7,7 +7,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.Date;
@@ -55,7 +54,6 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Optional<User> updateUser(User user) {
-        hasUser(user.getId());
         String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
         jdbcTemplate.update(sql,
                 user.getEmail(),
@@ -68,16 +66,18 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void deleteUser(User user) {
-        hasUser(user.getId());
         String sql = "DELETE FROM users WHERE id = ?";
         jdbcTemplate.update(sql, user.getId());
     }
 
     @Override
     public Optional<User> getUserById(long id) {
-        hasUser(id);
         String sql = "SELECT * FROM users WHERE id = ?";
-        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, this::mapRowToUser, id));
+        List<User> users = jdbcTemplate.query(sql, this::mapRowToUser, id);
+        if (users.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(users.get(0));
     }
 
     private Set<Long> getFriendIds(long userId) {
@@ -99,13 +99,5 @@ public class UserDbStorage implements UserStorage {
         user.setName(rs.getString("name"));
         user.setBirthday(rs.getDate("birthday").toLocalDate());
         return user;
-    }
-
-    public boolean hasUser(Long userId) {
-        if (!getUsers().stream().map(User::getId).toList().contains(userId)) {
-            log.warn("Операция не выполнена — пользователь с ID={} не найден", userId);
-            throw new NotFoundException("Пользователь с указанным ID - не найден");
-        }
-        return true;
     }
 }
