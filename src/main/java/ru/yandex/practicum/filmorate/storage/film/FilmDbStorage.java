@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.film;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -136,14 +137,25 @@ public class FilmDbStorage implements FilmStorage {
     private void insertFilmGenres(Long filmId, List<Genre> genres) {
         if (genres == null || genres.isEmpty()) return;
 
+        Set<Integer> uniqueGenreIds = new HashSet<>();
+        List<Genre> filteredGenres = genres.stream()
+                .filter(genre -> uniqueGenreIds.add(genre.getId()))
+                .toList();
+
         String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
 
-        Set<Integer> addedGenreIds = new HashSet<>();
-        for (Genre genre : genres) {
-            if (addedGenreIds.add(genre.getId())) {
-                jdbcTemplate.update(sql, filmId, genre.getId());
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setLong(1, filmId);
+                ps.setInt(2, filteredGenres.get(i).getId());
             }
-        }
+
+            @Override
+            public int getBatchSize() {
+                return filteredGenres.size();
+            }
+        });
     }
 
     private List<Genre> getGenresByFilmId(Long filmId) {
