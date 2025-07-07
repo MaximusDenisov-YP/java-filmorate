@@ -8,9 +8,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-
-@RestControllerAdvice
 @Slf4j
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ValidationException.class)
@@ -55,6 +54,18 @@ public class GlobalExceptionHandler {
                         exc.getMessage()
                 ),
                 HttpStatus.NOT_FOUND
+        );
+    }
+
+    @ExceptionHandler(FriendshipException.class)
+    public ResponseEntity<ErrorResponse> handleFriendshipException(FriendshipException exc) {
+        log.warn(exc.getMessage(), exc);
+        return new ResponseEntity<>(
+                new ErrorResponse(
+                        HttpStatus.OK.value(),
+                        exc.getMessage()
+                ),
+                HttpStatus.OK
         );
     }
 

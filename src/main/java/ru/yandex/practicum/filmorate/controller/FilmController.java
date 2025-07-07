@@ -2,12 +2,10 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.Collection;
 
@@ -16,32 +14,40 @@ import java.util.Collection;
 @RequestMapping("films")
 @Validated
 public class FilmController {
-    private final FilmStorage filmStorage;
     private final FilmService filmService;
 
-    public FilmController(FilmStorage filmStorage, FilmService filmService) {
-        this.filmStorage = filmStorage;
+    public FilmController(FilmService filmService) {
         this.filmService = filmService;
     }
 
     @GetMapping
     public Collection<Film> getFilms() {
-        return filmStorage.getFilms();
+        return filmService.getFilms();
+    }
+
+    @GetMapping("/{id}")
+    public Film getFilmById(@PathVariable @Positive long id) {
+        return filmService.getFilmById(id);
     }
 
     @PostMapping
     public Film createFilm(@Valid @RequestBody Film film) {
-        return filmStorage.createFilm(film);
+        return filmService.createFilm(film);
     }
 
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
-        return filmStorage.updateFilm(film);
+        return filmService.updateFilm(film);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteFilm(@PathVariable @Positive long id) {
+        filmService.deleteFilm(id);
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getPopularFilms(@Positive @DefaultValue(value = "10") @Positive @RequestParam int count) {
-        return filmStorage.getPopularFilms(count);
+    public Collection<Film> getPopularFilms(@Positive @Positive @RequestParam(defaultValue = "10") int count) {
+        return filmService.getPopularFilms(count);
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -50,7 +56,7 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void removeFilm(@Positive @PathVariable long id, @Positive @PathVariable long userId) {
+    public void removeLike(@Positive @PathVariable long id, @Positive @PathVariable long userId) {
         filmService.removeLike(id, userId);
     }
 }

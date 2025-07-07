@@ -2,11 +2,15 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
 
@@ -14,32 +18,35 @@ import java.util.Collection;
 @RequestMapping("/users")
 @Validated
 public class UserController {
-    private final UserStorage userStorage;
     private final UserService userService;
 
-    public UserController(UserStorage userStorage, UserService userService) {
-        this.userStorage = userStorage;
+    public UserController(@Qualifier("userDbStorage") UserStorage userStorage, FriendshipStorage friendshipStorage, UserService userService) {
         this.userService = userService;
     }
 
     @GetMapping
     public Collection<User> getUsers() {
-        return userStorage.getUsers();
+        return userService.getUsers();
     }
 
     @PostMapping
-    public User createUser(@Valid @RequestBody User user) {
-        return userStorage.createUser(user);
+    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
+        return new ResponseEntity<>(userService.createUser(user), HttpStatus.OK);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        return userStorage.updateUser(user);
+        return userService.updateUser(user);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@Positive @PathVariable long id, @Positive @PathVariable long friendId) {
-        userService.addFriend(id, friendId);
+        userService.sendFriendRequest(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
