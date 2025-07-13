@@ -7,9 +7,9 @@ CREATE TABLE IF NOT EXISTS users
     birthday DATE
 );
 
-CREATE TABLE IF NOT EXISTS friendship
+CREATE TABLE IF NOT EXISTS friendships
 (
-    friendship_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id_from  BIGINT,
     user_id_to    BIGINT,
     friend_status VARCHAR(20) CHECK (friend_status IN ('REQUESTED', 'ACCEPTED', 'REJECTED')),
@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS friendship
     FOREIGN KEY (user_id_from) REFERENCES users (id),
     FOREIGN KEY (user_id_to) REFERENCES users (id)
 );
+
 CREATE TABLE IF NOT EXISTS genres
 (
     id   INT PRIMARY KEY,
@@ -35,12 +36,11 @@ CREATE TABLE IF NOT EXISTS films
     name         VARCHAR(100) NOT NULL,
     description  TEXT,
     release_date DATE,
-    duration     BIGINT NOT NULL,
+    duration     BIGINT       NOT NULL,
     mpa_rating   INT
---     CONSTRAINT fk_mpa_rating FOREIGN KEY (mpa_rating) REFERENCES mpa_ratings (id)
 );
 
-CREATE TABLE IF NOT EXISTS likes
+CREATE TABLE IF NOT EXISTS films_likes
 (
     id      BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     film_id BIGINT,
@@ -49,11 +49,32 @@ CREATE TABLE IF NOT EXISTS likes
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
-CREATE TABLE IF NOT EXISTS film_genres
+CREATE TABLE IF NOT EXISTS films_genres
 (
     film_id  BIGINT,
     genre_id INT,
     PRIMARY KEY (film_id, genre_id),
     FOREIGN KEY (film_id) REFERENCES films (id),
     FOREIGN KEY (genre_id) REFERENCES genres (id)
+);
+
+CREATE TABLE IF NOT EXISTS reviews
+(
+    id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    content     VARCHAR(1000),
+    is_positive BOOLEAN,
+    user_id     BIGINT,
+    film_id     BIGINT,
+    useful      BIGINT,
+    FOREIGN KEY (film_id) REFERENCES films (id)
+);
+
+CREATE TABLE IF NOT EXISTS reviews_likes
+(
+    id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    review_id   BIGINT,
+    user_id     BIGINT,
+    is_positive BOOLEAN,
+    FOREIGN KEY (review_id) REFERENCES reviews (id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );

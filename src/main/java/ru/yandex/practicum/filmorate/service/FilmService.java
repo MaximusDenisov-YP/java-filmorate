@@ -8,9 +8,9 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.storage.film.FilmLikeStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -25,7 +25,7 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private final LikeStorage likeStorage;
+    private final FilmLikeStorage likeStorage;
     private final MpaStorage mpaDbStorage;
     private final GenreStorage genreDbStorage;
     private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
@@ -33,8 +33,7 @@ public class FilmService {
     public FilmService(
             @Qualifier("filmDbStorage") FilmStorage filmStorage,
             @Qualifier("userDbStorage") UserStorage userStorage,
-            LikeStorage likeStorage,
-            MpaStorage mpaDbStorage,
+            FilmLikeStorage likeStorage, MpaStorage mpaDbStorage,
             GenreStorage genreDbStorage
     ) {
         this.filmStorage = filmStorage;
@@ -57,8 +56,9 @@ public class FilmService {
         validateFilm(film, false);
         film.setMpa(resolveMpa(film.getMpa()).get());
         film.setGenres(resolveGenres(film.getGenres()));
-        log.info("Фильм успешно создан: {}", film);
-        return filmStorage.createFilm(film);
+        Film result = filmStorage.createFilm(film);
+        log.info("Фильм создан: {}", result);
+        return result;
     }
 
     public Film updateFilm(Film film) {
@@ -89,7 +89,7 @@ public class FilmService {
         filmStorage.getFilmById(filmId)
                 .orElseThrow(() -> new NotFoundException("Фильм с id=%d не найден".formatted(filmId)));
 
-        likeStorage.addLike(filmId, userId);
+        likeStorage.addFilmLike(filmId, userId);
     }
 
     public void removeLike(long filmId, long userId) {
@@ -99,7 +99,7 @@ public class FilmService {
         filmStorage.getFilmById(filmId)
                 .orElseThrow(() -> new NotFoundException("Фильм с id=%d не найден".formatted(filmId)));
 
-        likeStorage.removeLike(filmId, userId);
+        likeStorage.removeFilmLike(filmId, userId);
     }
 
     public List<Genre> getAllGenres() {

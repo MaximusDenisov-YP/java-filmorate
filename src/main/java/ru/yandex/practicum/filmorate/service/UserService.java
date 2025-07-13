@@ -27,18 +27,23 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        return userStorage.createUser(user);
+        User result = userStorage.createUser(user);
+        log.info("Создан пользователь {}", result);
+        return result;
     }
 
     public User updateUser(User user) {
         getUserById(user.getId());
-        return userStorage.updateUser(user)
+        User result = userStorage.updateUser(user)
                 .orElseThrow(() -> new NotFoundException("Не удалось обновить пользователя"));
+        log.info("Обновлён пользователь {}", result);
+        return result;
     }
 
     public void deleteUser(Long id) {
         User user = getUserById(id);
         userStorage.deleteUser(user);
+        log.info("Удалён пользователь с ID {}", id);
     }
 
     public User getUserById(Long id) {

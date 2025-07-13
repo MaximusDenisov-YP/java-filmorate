@@ -22,7 +22,7 @@ public class FriendshipDbStorage implements FriendshipStorage {
     @Override
     public Friendship getFriendship(long fromUserId, long toUserId) {
         String sql = """
-                SELECT * FROM FRIENDSHIP
+                SELECT * FROM FRIENDSHIPS
                 WHERE (user_id_from = ? AND user_id_to = ?)
                    OR (user_id_from = ? AND user_id_to = ?)
                 """;
@@ -32,7 +32,7 @@ public class FriendshipDbStorage implements FriendshipStorage {
     @Override
     public void sendFriendRequest(long fromUserId, long toUserId) {
         String sql = """
-                INSERT INTO friendship (user_id_from, user_id_to, friend_status)
+                INSERT INTO friendships (user_id_from, user_id_to, friend_status)
                 VALUES (?, ?, 'REQUESTED')
                 """;
         jdbcTemplate.update(sql, fromUserId, toUserId);
@@ -41,7 +41,7 @@ public class FriendshipDbStorage implements FriendshipStorage {
     @Override
     public void acceptFriendRequest(long fromUserId, long toUserId) {
         String sql = """
-                UPDATE friendship
+                UPDATE friendships
                 SET friend_status = 'ACCEPTED'
                 WHERE user_id_from = ? AND user_id_to = ?
                 """;
@@ -51,7 +51,7 @@ public class FriendshipDbStorage implements FriendshipStorage {
     @Override
     public void rejectFriendRequest(long fromUserId, long toUserId) {
         String sql = """
-                UPDATE friendship
+                UPDATE friendships
                 SET friend_status = 'REJECTED'
                 WHERE user_id_from = ? AND user_id_to = ?
                 """;
@@ -61,7 +61,7 @@ public class FriendshipDbStorage implements FriendshipStorage {
     @Override
     public void removeFriendship(long fromUserId, long toUserId) {
         String sql = """
-                DELETE FROM friendship
+                DELETE FROM friendships
                 WHERE (user_id_from = ? AND user_id_to = ?)
                    OR (user_id_from = ? AND user_id_to = ?)
                 """;
@@ -72,7 +72,7 @@ public class FriendshipDbStorage implements FriendshipStorage {
     public List<User> getFriends(long userId) {
         String sql = """
                 SELECT u.* FROM users u
-                JOIN friendship f ON (
+                JOIN friendships f ON (
                     (f.user_id_from = ? AND f.user_id_to = u.id AND f.friend_status IN ('ACCEPTED', 'REQUESTED'))
                     OR
                     (f.user_id_to = ? AND f.user_id_from = u.id AND f.friend_status = 'ACCEPTED')
@@ -86,7 +86,7 @@ public class FriendshipDbStorage implements FriendshipStorage {
     public List<User> getRequestedFriends(long userId) {
         String sql = """
                 SELECT u.* FROM users u
-                JOIN friendship f ON (
+                JOIN friendships f ON (
                     (f.user_id_from = ? AND f.user_id_to = u.id AND f.friend_status IN ('ACCEPTED', 'REQUESTED'))
                     OR
                     (f.user_id_to = ? AND f.user_id_from = u.id AND f.friend_status = 'ACCEPTED')
@@ -99,7 +99,7 @@ public class FriendshipDbStorage implements FriendshipStorage {
     @Override
     public List<Long> getFriendRequestsUserIdsForUser(long userId) {
         String sql = """
-                SELECT user_id_from FROM friendship
+                SELECT user_id_from FROM friendships
                 WHERE user_id_to = ? AND friend_status = 'REQUESTED'
                 """;
         return jdbcTemplate.queryForList(sql, Long.class, userId);
@@ -107,7 +107,7 @@ public class FriendshipDbStorage implements FriendshipStorage {
 
     private Friendship mapRowToFriendship(ResultSet rs) throws SQLException {
         Friendship friendship = new Friendship();
-        friendship.setFriendshipId(rs.getLong("friendship_id"));
+        friendship.setFriendshipId(rs.getLong("id"));
         friendship.setUserIdFrom(rs.getLong("user_id_from"));
         friendship.setUserIdTo(rs.getLong("user_id_to"));
         friendship.setFriendStatus(Friendship.FriendStatus.valueOf(rs.getString("friend_status")));
