@@ -82,6 +82,10 @@ public class FilmService {
         return filmStorage.getPopularFilms(count);
     }
 
+    public List<Film> getPopularFilmsByGenreAndYear(Integer count, Integer genreId, Integer year) {
+        return filmStorage.getPopularFilmsByGenreAndYear(count, genreId, year);
+    }
+
     public void addLike(long filmId, long userId) {
         userStorage.getUserById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id=%d не найден".formatted(userId)));
