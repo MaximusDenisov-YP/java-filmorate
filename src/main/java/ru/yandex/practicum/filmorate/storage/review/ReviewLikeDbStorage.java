@@ -22,15 +22,6 @@ public class ReviewLikeDbStorage implements ReviewLikeStorage {
     public void addReviewLike(long reviewId, long userId, boolean isPositive) {
         String sql = "INSERT INTO reviews_likes (review_id, user_id, is_positive) VALUES (?, ?, ?)";
         jdbcTemplate.update(sql, reviewId, userId, isPositive);
-        String sqlToUpdate;
-        if (isPositive) {
-            sqlToUpdate = "UPDATE reviews SET useful = useful + 1 WHERE id = ?";
-            log.info("Добавлен лайк под отзывом с ID {} от юзера {}", reviewId, userId);
-        } else {
-            sqlToUpdate = "UPDATE reviews SET useful = useful - 1 WHERE id = ?";
-            log.info("Добавлен дизлайк под отзывом с ID {} от юзера {}", reviewId, userId);
-        }
-        jdbcTemplate.update(sqlToUpdate, reviewId);
     }
 
     @Override
