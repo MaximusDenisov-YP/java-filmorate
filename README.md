@@ -1,8 +1,9 @@
 # java-filmorate
-Template repository for Filmorate project.
+<H3>Проект Java-Filmorate - Команда №13</H3>
+__________________________
 
-<H3>Диаграмма представления базы данных</H3>
-<img height="450" src="/Users/m_dev/Desktop/developer/yandex.practicum/projects/java-filmorate/src/main/resources/diagram_for_db.png" width="450"/></img>
+<H5>Диаграмма представления базы данных</H5>
+![Диаграмма БД](./src/main/resources/dbdiagram.jpg)
 
 https://dbdiagram.io/d/6861ce82f413ba35086c1eff - ссылка на диаграмму.
 

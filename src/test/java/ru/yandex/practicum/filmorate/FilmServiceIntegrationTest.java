@@ -11,7 +11,7 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
-import ru.yandex.practicum.filmorate.storage.like.LikeDbStorage;
+import ru.yandex.practicum.filmorate.storage.film.FilmLikeDbStorage;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         FilmService.class,
         FilmDbStorage.class,
         UserDbStorage.class,
-        LikeDbStorage.class,
+        FilmLikeDbStorage.class,
         MpaDbStorage.class,
         GenreDbStorage.class
 })

@@ -43,6 +43,7 @@ public class FilmDbStorage implements FilmStorage {
                 SELECT f.*, m.id as mpa_id, m.name as mpa_name
                 FROM films f
                 LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
+                LEFT JOIN reviews r ON r.FILM_ID = f.id
                 WHERE f.id = ?
                 """;
         return Optional.ofNullable(jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRowToFilm(rs), id));
@@ -90,7 +91,7 @@ public class FilmDbStorage implements FilmStorage {
                 film.getId()
         );
 
-        jdbcTemplate.update("DELETE FROM film_genres WHERE film_id = ?", film.getId());
+        jdbcTemplate.update("DELETE FROM films_genres WHERE film_id = ?", film.getId());
         insertFilmGenres(film.getId(), film.getGenres());
 
         return film;
@@ -108,7 +109,7 @@ public class FilmDbStorage implements FilmStorage {
                 SELECT f.*, m.id as mpa_id, m.name as mpa_name, COUNT(l.user_id) AS likes_count
                 FROM films f
                 LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
-                LEFT JOIN likes l ON f.id = l.film_id
+                LEFT JOIN films_likes l ON f.id = l.film_id
                 GROUP BY f.id, m.id, m.name
                 ORDER BY likes_count DESC
                 LIMIT ?
@@ -142,7 +143,7 @@ public class FilmDbStorage implements FilmStorage {
                 .filter(genre -> uniqueGenreIds.add(genre.getId()))
                 .toList();
 
-        String sql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
+        String sql = "INSERT INTO films_genres (film_id, genre_id) VALUES (?, ?)";
 
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
@@ -161,7 +162,7 @@ public class FilmDbStorage implements FilmStorage {
     private List<Genre> getGenresByFilmId(Long filmId) {
         String sql = """
                     SELECT g.id, g.name FROM genres g
-                    JOIN film_genres fg ON g.id = fg.genre_id
+                    JOIN films_genres fg ON g.id = fg.genre_id
                     WHERE fg.film_id = ?
                     ORDER BY g.id
                 """;

@@ -82,10 +82,10 @@ public class UserDbStorage implements UserStorage {
 
     private Set<Long> getFriendIds(long userId) {
         String sql = """
-                SELECT user_id_to FROM friendship
+                SELECT user_id_to FROM friendships
                 WHERE user_id_from = ? AND friend_status = 'ACCEPTED'
                 UNION
-                SELECT user_id_from FROM friendship
+                SELECT user_id_from FROM friendships
                 WHERE user_id_to = ? AND friend_status = 'ACCEPTED'
                 """;
         return new HashSet<>(jdbcTemplate.queryForList(sql, Long.class, userId, userId));
