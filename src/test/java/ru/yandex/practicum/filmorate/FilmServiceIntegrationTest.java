@@ -55,7 +55,7 @@ public class FilmServiceIntegrationTest {
 
     @Test
     public void testGetPopularFilms() {
-        List<Film> popularFilms = filmService.getPopularFilms(10);
+        List<Film> popularFilms = filmService.getPopularFilmsFiltered(10, null, null);
         assertThat(popularFilms).isNotNull();
         assertThat(popularFilms.size()).isLessThanOrEqualTo(10);
     }

@@ -131,7 +131,6 @@ public class FilmDbStorage implements FilmStorage {
         List<Object> args = new ArrayList<>();
 
 
-        // TODO: УБРАТЬ WHERE 1=1 или ПРИМЕНИТЬ ДЛЯ УКАЗАНИЕ ДИНАМИЧЕСКИХ AND EXTRACT
         if (genreId != null) {
             sql = new StringBuilder(sql.toString().replace(
                     "LEFT JOIN films_genres g ON f.id = g.film_id",
@@ -146,12 +145,10 @@ public class FilmDbStorage implements FilmStorage {
         } else if (year != null) {
             sql.append(" WHERE EXTRACT(YEAR FROM f.release_date) = ?");
             args.add(year);
-        } else if (genreId == null) {
-            sql.append(" WHERE 1=1\n");
         }
 
         sql.append("""
-                GROUP BY f.id, m.id, m.name
+                \nGROUP BY f.id, m.id, m.name
                 ORDER BY likes_count DESC
                 """
         );
@@ -162,7 +159,7 @@ public class FilmDbStorage implements FilmStorage {
                         """);
             args.add(count);
         }
-
+        log.debug("getPopularFilmsByGenreAndYear.class sql = \n{}\nargs = {}", sql, args);
         return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> mapRowToFilm(rs), args.toArray());
     }
 

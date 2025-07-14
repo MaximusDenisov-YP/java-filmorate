@@ -50,12 +50,7 @@ public class FilmController {
             @RequestParam(required = false) Integer count,
             @RequestParam(required = false) Integer genreId,
             @RequestParam(required = false) Integer year) {
-
-        if (genreId != null || year != null) {
-            return filmService.getPopularFilmsByGenreAndYear(count, genreId, year);
-        } else {
-            return filmService.getPopularFilms(count);
-        }
+        return filmService.getPopularFilmsFiltered(count, genreId, year);
     }
 
     @PutMapping("/{id}/like/{userId}")

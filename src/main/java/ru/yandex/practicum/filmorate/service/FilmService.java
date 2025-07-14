@@ -78,11 +78,17 @@ public class FilmService {
         filmStorage.deleteFilm(id);
     }
 
-    public List<Film> getPopularFilms(int count) {
-        return filmStorage.getPopularFilms(count);
-    }
+    public List<Film> getPopularFilmsFiltered(Integer count, Integer genreId, Integer year) {
+        int limit = (count != null && count > 0) ? count : 10;
 
-    public List<Film> getPopularFilmsByGenreAndYear(Integer count, Integer genreId, Integer year) {
+        if (genreId == null && year == null) {
+            return filmStorage.getPopularFilms(limit);
+        }
+
+        if (genreId != null && genreDbStorage.getById(genreId).isEmpty()) {
+            throw new NotFoundException("Жанр с ID %d не найден".formatted(genreId));
+        }
+
         return filmStorage.getPopularFilmsByGenreAndYear(count, genreId, year);
     }
 
