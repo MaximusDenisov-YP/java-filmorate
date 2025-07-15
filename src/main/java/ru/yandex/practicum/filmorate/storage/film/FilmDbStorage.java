@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.model.Director;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -70,10 +71,8 @@ public class FilmDbStorage implements FilmStorage {
         }, keyHolder);
 
         film.setId(keyHolder.getKey().longValue());
-        insertFilmGenres(
-                film.getId(),
-                film.getGenres() != null ? film.getGenres() : null
-        );
+        insertFilmGenres(film.getId(), film.getGenres());
+        insertFilmDirectors(film.getId(), film.getDirectors());
         return film;
     }
 
@@ -81,10 +80,6 @@ public class FilmDbStorage implements FilmStorage {
     public Film updateFilm(Film film) {
         String sql = "UPDATE films SET name = ?, description = ?, release_date = ?, " +
                 "duration = ?, mpa_rating = ? WHERE id = ?";
-
-        if (film.getMpa() == null) {
-            film.setMpa(new Mpa(0, "Not Rated"));
-        }
 
         jdbcTemplate.update(sql,
                 film.getName(),
@@ -98,7 +93,32 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update("DELETE FROM films_genres WHERE film_id = ?", film.getId());
         insertFilmGenres(film.getId(), film.getGenres());
 
+        jdbcTemplate.update("DELETE FROM film_directors WHERE film_id = ?", film.getId());
+        insertFilmDirectors(film.getId(), film.getDirectors());
+
         return film;
+    }
+
+
+    private void insertFilmDirectors(Long filmId, List<Director> directors) {
+        if (directors == null || directors.isEmpty()) {
+            return;
+        }
+
+        String sql = "INSERT INTO film_directors (film_id, director_id) VALUES (?, ?)";
+
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setLong(1, filmId);
+                ps.setLong(2, directors.get(i).getId()); // Изменено с setInt на setLong
+            }
+
+            @Override
+            public int getBatchSize() {
+                return directors.size();
+            }
+        });
     }
 
     @Transactional
@@ -201,6 +221,7 @@ public class FilmDbStorage implements FilmStorage {
         }
 
         film.setGenres(getGenresByFilmId(film.getId()));
+        film.setDirectors(getDirectorsByFilmId(film.getId()));
         return film;
     }
 
@@ -226,6 +247,17 @@ public class FilmDbStorage implements FilmStorage {
                 return filteredGenres.size();
             }
         });
+    }
+
+    private List<Director> getDirectorsByFilmId(Long filmId) {
+        String sql = """
+                SELECT d.id, d.name FROM directors d
+                JOIN film_directors fd ON d.id = fd.director_id
+                WHERE fd.film_id = ?
+                ORDER BY d.id
+                """;
+        return jdbcTemplate.query(sql, (rs, rowNum) ->
+                new Director(rs.getLong("id"), rs.getString("name")), filmId);
     }
 
     private List<Genre> getGenresByFilmId(Long filmId) {
