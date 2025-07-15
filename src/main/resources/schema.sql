@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS films
     description  TEXT,
     release_date DATE,
     duration     BIGINT NOT NULL,
-    mpa_rating   INT
+    mpa_rating   INT,
     FOREIGN KEY (mpa_rating) REFERENCES mpa_ratings (id)
 );
 

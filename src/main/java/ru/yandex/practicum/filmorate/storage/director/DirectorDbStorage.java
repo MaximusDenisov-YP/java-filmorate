@@ -34,7 +34,7 @@ public class DirectorDbStorage implements DirectorStorage {
                 LEFT JOIN film_directors fd ON f.id = fd.film_id
                 WHERE fd.director_id = ?
                 ORDER BY 
-                    CASE WHEN ? = 'likes' THEN (SELECT COUNT(*) FROM likes WHERE film_id = f.id) END DESC,
+                    CASE WHEN ? = 'likes' THEN (SELECT COUNT(*) FROM films_likes WHERE film_id = f.id) END DESC,
                     CASE WHEN ? = 'year' THEN f.release_date END ASC
                 """;
 
