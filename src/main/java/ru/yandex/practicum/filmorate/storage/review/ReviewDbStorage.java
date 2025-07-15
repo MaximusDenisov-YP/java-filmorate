@@ -4,12 +4,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -78,6 +80,18 @@ public class ReviewDbStorage implements ReviewStorage {
     public void deleteReview(long id) {
         String sql = "DELETE FROM reviews WHERE id = ?";
         jdbcTemplate.update(sql, id);
+    }
+
+    @Transactional
+    public List<Long> deleteReviewsByUserId(long userId) {
+        String getReviewsIds = "SELECT review_id FROM reviews_likes WHERE user_id = ?";
+        String deleteReviewsLikes = "DELETE FROM reviews_likes WHERE user_id = ?";
+        String deleteReviews = "DELETE FROM reviews WHERE user_id = ?";
+        List<Long> reviewsIds = jdbcTemplate.query(getReviewsIds,
+                (rs, rowNum) -> rs.getLong("review_id"), userId);
+        jdbcTemplate.update(deleteReviewsLikes, userId);
+        jdbcTemplate.update(deleteReviews, userId);
+        return reviewsIds;
     }
 
     private Review mapRowToReview(ResultSet rs, int rowNum) throws SQLException {

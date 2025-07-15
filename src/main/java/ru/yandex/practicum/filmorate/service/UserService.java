@@ -41,8 +41,10 @@ public class UserService {
     }
 
     public void deleteUser(Long id) {
-        User user = getUserById(id);
-        userStorage.deleteUser(user);
+        if (userStorage.getUserById(id).isEmpty()) {
+            throw new NotFoundException("Пользователь для удаления не найден");
+        }
+        userStorage.deleteUser(id);
         log.info("Удалён пользователь с ID {}", id);
     }
 
