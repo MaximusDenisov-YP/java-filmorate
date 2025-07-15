@@ -107,6 +107,17 @@ public class ReviewService {
                 .anyMatch(like -> like.getUserId() == userId);
     }
 
+    public void deleteReviewsByUserId(long userId) {
+        // Получаем список отзывов, которым пользователь ставил лайки/дизлайки
+        // Удаляем отзывы пользователя и лайки/дизлайки, которые он ставил отзывам
+        if (userStorage.getUserById(userId).isEmpty()) {
+            throw new NotFoundException("Пользователь для удаления отзывов не найден");
+        }
+        List<Long> likedReviewsIds = reviewStorage.deleteReviewsByUserId(userId);
+        likedReviewsIds.forEach(this::recalcLikesForReview);
+        log.info("Удалёны отзывы от пользователя с ID {}", userId);
+    }
+
     private void recalcLikesForReview(long reviewId) {
         List<ReviewLike> likes = (List<ReviewLike>) reviewLikeStorage.getReviewLikesByReviewId(reviewId);
         int useful = likes.stream()
