@@ -12,11 +12,9 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
+import java.sql.Date;
 import java.sql.*;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 
 @Repository
@@ -117,6 +115,54 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), count);
     }
 
+    @Override
+    public List<Film> getPopularFilmsByGenreAndYear(Integer count, Integer genreId, Integer year) {
+        StringBuilder sql = new StringBuilder("""
+                    SELECT f.*,
+                           m.id   AS mpa_id,
+                           m.name AS mpa_name,
+                           COUNT(l.user_id) AS likes_count
+                    FROM films f
+                    LEFT JOIN mpa_ratings  m ON f.mpa_rating = m.id
+                    LEFT JOIN films_likes  l ON f.id = l.film_id
+                    LEFT JOIN films_genres g ON f.id = g.film_id
+                """);
+
+        List<Object> args = new ArrayList<>();
+
+
+        if (genreId != null) {
+            sql = new StringBuilder(sql.toString().replace(
+                    "LEFT JOIN films_genres g ON f.id = g.film_id",
+                    "LEFT JOIN films_genres g ON f.id = g.film_id WHERE g.genre_id = ?"
+            ));
+            args.add(genreId);
+        }
+
+        if (year != null && genreId != null) {
+            sql.append(" AND EXTRACT(YEAR FROM f.release_date) = ?");
+            args.add(year);
+        } else if (year != null) {
+            sql.append(" WHERE EXTRACT(YEAR FROM f.release_date) = ?");
+            args.add(year);
+        }
+
+        sql.append("""
+                \nGROUP BY f.id, m.id, m.name
+                ORDER BY likes_count DESC
+                """
+        );
+
+        if (count != null) {
+            sql.append("""
+                    LIMIT ?
+                        """);
+            args.add(count);
+        }
+        log.debug("getPopularFilmsByGenreAndYear.class sql = \n{}\nargs = {}", sql, args);
+        return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> mapRowToFilm(rs), args.toArray());
+    }
+
     private Film mapRowToFilm(ResultSet rs) throws SQLException {
         Film film = new Film();
         film.setId(rs.getLong("id"));
@@ -161,11 +207,16 @@ public class FilmDbStorage implements FilmStorage {
 
     private List<Genre> getGenresByFilmId(Long filmId) {
         String sql = """
-                    SELECT g.id, g.name FROM genres g
-                    JOIN films_genres fg ON g.id = fg.genre_id
-                    WHERE fg.film_id = ?
-                    ORDER BY g.id
-                """;
+                SELECT g.id,
+                g.name FROM
+                genres g
+                JOIN films_genres
+                fg ON
+                g.id =fg.genre_id
+                WHERE fg.film_id =?
+                ORDER BY
+                g.id
+                            """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) ->
                 new Genre(rs.getInt("id"), rs.getString("name")), filmId);
