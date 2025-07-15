@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.DirectorService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -15,9 +17,11 @@ import java.util.Collection;
 @Validated
 public class FilmController {
     private final FilmService filmService;
+    private final DirectorService directorService;
 
-    public FilmController(FilmService filmService) {
+    public FilmController(FilmService filmService, DirectorService directorService) {
         this.filmService = filmService;
+        this.directorService = directorService;
     }
 
     @GetMapping
@@ -58,5 +62,15 @@ public class FilmController {
     @DeleteMapping("/{id}/like/{userId}")
     public void removeLike(@Positive @PathVariable long id, @Positive @PathVariable long userId) {
         filmService.removeLike(id, userId);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public Collection<Film> getFilmsByDirector(
+            @PathVariable long directorId,
+            @RequestParam(defaultValue = "year") String sortBy) {
+        if (!sortBy.equals("year") && !sortBy.equals("likes")) {
+            throw new ValidationException("Некорректный параметр сортировки. Используйте 'year' либо 'likes'");
+        }
+        return directorService.getSortedFilmsByDirector(directorId, sortBy);
     }
 }
