@@ -28,6 +28,36 @@ public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
+    private static final String GET_COMMON_FILMS_SQL =
+            """
+                    WITH common_films AS (
+                        SELECT fl.film_id
+                        FROM films_likes fl
+                        WHERE fl.user_id IN (?, ?)
+                        GROUP BY fl.film_id
+                        HAVING COUNT(DISTINCT fl.user_id) = 2
+                    ),
+                    film_likes AS (
+                        SELECT film_id, COUNT(*) AS likes_count
+                        FROM films_likes
+                        GROUP BY film_id
+                    )
+                    SELECT
+                        f.id,
+                        f.name,
+                        f.description,
+                        f.release_date,
+                        f.duration,
+                        f.mpa_rating AS mpa_id,
+                        mr.name AS mpa_name,
+                        fl.likes_count
+                    FROM films f
+                    JOIN mpa_ratings mr ON mr.id = f.mpa_rating
+                    JOIN film_likes fl ON fl.film_id = f.id
+                    WHERE f.id IN (SELECT film_id FROM common_films)
+                    ORDER BY fl.likes_count DESC, f.release_date DESC
+                    """;
+
     @Override
     public List<Film> getFilms() {
         String sql = """
@@ -275,5 +305,18 @@ public class FilmDbStorage implements FilmStorage {
 
         return jdbcTemplate.query(sql, (rs, rowNum) ->
                 new Genre(rs.getInt("id"), rs.getString("name")), filmId);
+    }
+
+    @Override
+    public List<Film> getCommonFilms(Long userId, Long friendId) {
+        return jdbcTemplate.query(
+                GET_COMMON_FILMS_SQL,
+                (rs, rowNum) -> {
+                    Film film = mapRowToFilm(rs);
+                    return film;
+                },
+                userId,
+                friendId
+        );
     }
 }
