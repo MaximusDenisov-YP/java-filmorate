@@ -33,7 +33,7 @@ public class DirectorDbStorage implements DirectorStorage {
                 LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
                 LEFT JOIN film_directors fd ON f.id = fd.film_id
                 WHERE fd.director_id = ?
-                ORDER BY 
+                ORDER BY
                     CASE WHEN ? = 'likes' THEN (SELECT COUNT(*) FROM films_likes WHERE film_id = f.id) END DESC,
                     CASE WHEN ? = 'year' THEN f.release_date END ASC
                 """;
@@ -50,7 +50,7 @@ public class DirectorDbStorage implements DirectorStorage {
 
     private List<Director> getDirectorsByFilmId(Long filmId) {
         String sql = """
-                SELECT d.id, d.name 
+                SELECT d.id, d.name
                 FROM directors d
                 JOIN film_directors fd ON d.id = fd.director_id
                 WHERE fd.film_id = ?
