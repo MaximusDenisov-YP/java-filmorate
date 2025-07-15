@@ -9,6 +9,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Director;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -16,6 +17,7 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import java.sql.Date;
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Repository
@@ -45,9 +47,14 @@ public class FilmDbStorage implements FilmStorage {
                 LEFT JOIN reviews r ON r.FILM_ID = f.id
                 WHERE f.id = ?
                 """;
-        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRowToFilm(rs), id));
+        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), id);
+        if (films.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(films.get(0));
     }
 
+    @Override
     public Film createFilm(Film film) {
         String sql = "INSERT INTO films (name, description, release_date, duration, mpa_rating) " +
                 "VALUES (?, ?, ?, ?, ?)";
@@ -68,7 +75,6 @@ public class FilmDbStorage implements FilmStorage {
         insertFilmDirectors(film.getId(), film.getDirectors());
         return film;
     }
-
 
     @Override
     public Film updateFilm(Film film) {
@@ -93,6 +99,7 @@ public class FilmDbStorage implements FilmStorage {
         return film;
     }
 
+
     private void insertFilmDirectors(Long filmId, List<Director> directors) {
         if (directors == null || directors.isEmpty()) {
             return;
@@ -114,11 +121,27 @@ public class FilmDbStorage implements FilmStorage {
         });
     }
 
-
+    @Transactional
     @Override
     public void deleteFilm(Long id) {
-        String sql = "DELETE FROM films WHERE id = ?";
-        jdbcTemplate.update(sql, id);
+        String getReviewsIds = "SELECT id FROM reviews WHERE film_id = ?";
+        List<Long> reviewsIds = jdbcTemplate.query(getReviewsIds,
+                (rs, rowNum) -> rs.getLong("id"), id);
+        String stringReviewsIds = reviewsIds.stream()
+                .map(reviewId -> "?")
+                .collect(Collectors.joining(","));
+
+        String deleteReviewsLikes = "DELETE FROM reviews_likes WHERE review_id IN (" + stringReviewsIds + ")";
+        String deleteReviews = "DELETE FROM reviews WHERE film_id = ?";
+        String deleteFilmGenres = "DELETE FROM films_genres WHERE film_id = ?";
+        String deleteFilmsLikes = "DELETE FROM films_likes WHERE film_id = ?";
+        String deleteFilms = "DELETE FROM films WHERE id = ?";
+
+        jdbcTemplate.update(deleteReviewsLikes);
+        jdbcTemplate.update(deleteReviews, id);
+        jdbcTemplate.update(deleteFilmGenres, id);
+        jdbcTemplate.update(deleteFilmsLikes, id);
+        jdbcTemplate.update(deleteFilms, id);
     }
 
     @Override
@@ -176,7 +199,7 @@ public class FilmDbStorage implements FilmStorage {
         if (count != null) {
             sql.append("""
                     LIMIT ?
-                        """);
+                    """);
             args.add(count);
         }
         log.debug("getPopularFilmsByGenreAndYear.class sql = \n{}\nargs = {}", sql, args);
@@ -248,7 +271,7 @@ public class FilmDbStorage implements FilmStorage {
                 WHERE fg.film_id =?
                 ORDER BY
                 g.id
-                            """;
+                """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) ->
                 new Genre(rs.getInt("id"), rs.getString("name")), filmId);

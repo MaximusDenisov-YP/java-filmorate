@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.Date;
@@ -64,10 +65,16 @@ public class UserDbStorage implements UserStorage {
         return Optional.of(user);
     }
 
+    @Transactional
     @Override
-    public void deleteUser(User user) {
-        String sql = "DELETE FROM users WHERE id = ?";
-        jdbcTemplate.update(sql, user.getId());
+    public void deleteUser(long id) {
+        String deleteFriendships = "DELETE FROM friendships WHERE user_id_to OR user_id_from = ?";
+        String deleteFilmsLikes = "DELETE FROM films_likes WHERE user_id = ?";
+        String deleteUser = "DELETE FROM users WHERE id = ?";
+
+        jdbcTemplate.update(deleteFriendships, id);
+        jdbcTemplate.update(deleteFilmsLikes, id);
+        jdbcTemplate.update(deleteUser, id);
     }
 
     @Override

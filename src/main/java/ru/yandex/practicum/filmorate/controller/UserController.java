@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.ReviewService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -19,14 +20,22 @@ import java.util.Collection;
 @Validated
 public class UserController {
     private final UserService userService;
+    private final ReviewService reviewService;
 
-    public UserController(@Qualifier("userDbStorage") UserStorage userStorage, FriendshipStorage friendshipStorage, UserService userService) {
+    public UserController(@Qualifier("userDbStorage") UserStorage userStorage, FriendshipStorage friendshipStorage,
+                          UserService userService, ReviewService reviewService) {
         this.userService = userService;
+        this.reviewService = reviewService;
     }
 
     @GetMapping
     public Collection<User> getUsers() {
         return userService.getUsers();
+    }
+
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable @Positive long id) {
+        return userService.getUserById(id);
     }
 
     @PostMapping
@@ -41,6 +50,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) {
+        reviewService.deleteReviewsByUserId(id);
         userService.deleteUser(id);
     }
 

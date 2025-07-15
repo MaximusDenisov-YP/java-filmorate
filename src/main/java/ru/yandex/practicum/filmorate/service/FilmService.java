@@ -74,8 +74,8 @@ public class FilmService {
         if (filmStorage.getFilmById(id).isEmpty()) {
             throw new NotFoundException("Фильм для удаления не найден");
         }
-        log.info("Фильм удалён c ID: {}", id);
         filmStorage.deleteFilm(id);
+        log.info("Фильм удалён c ID: {}", id);
     }
 
     public List<Film> getPopularFilmsFiltered(Integer count, Integer genreId, Integer year) {
