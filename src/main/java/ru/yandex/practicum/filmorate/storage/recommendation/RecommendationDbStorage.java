@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -49,10 +51,11 @@ public class RecommendationDbStorage implements RecommendationStorage {
         }
 
         String sql = """
-                SELECT DISTINCT f.*
+                SELECT DISTINCT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating, m.id AS mpa_id, m.name AS mpa_name
                 FROM films f
                 JOIN films_likes l ON f.id = l.film_id
-                WHERE l.user_id IN (%s)
+                JOIN mpa_ratings m ON f.mpa_rating = m.id
+                WHERE l.user_id = ?
                   AND f.id NOT IN (SELECT film_id FROM films_likes WHERE user_id = ?)
                 ORDER BY f.id
                 """;
@@ -65,17 +68,38 @@ public class RecommendationDbStorage implements RecommendationStorage {
 
         List<Object> params = new ArrayList<>(similarUserIds);
         params.add(userId);
-
+        log.info("Параметры для запроса рекомендаций: {}", params);
         return jdbcTemplate.query(sql, this::mapToFilm, params.toArray());
     }
 
+    private List<Genre> getGenresByFilmId(Long filmId) {
+        String sql = """
+                SELECT g.id,
+                g.name FROM
+                genres g
+                JOIN films_genres
+                fg ON
+                g.id =fg.genre_id
+                WHERE fg.film_id =?
+                ORDER BY
+                g.id
+                """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) ->
+                new Genre(rs.getInt("id"), rs.getString("name")), filmId);
+    }
+
     private Film mapToFilm(ResultSet rs, int rowNum) throws SQLException {
+        int mpaId = rs.getInt("mpa_id");
+        String mpaName = rs.getString("mpa_name");
         return Film.builder()
                 .id(rs.getLong("id"))
                 .name(rs.getString("name"))
                 .description(rs.getString("description"))
                 .releaseDate(rs.getDate("release_date").toLocalDate())
                 .duration((long) rs.getInt("duration"))
+                .mpa(new Mpa(mpaId, mpaName))
+                .genres(getGenresByFilmId(rs.getLong("id")))
                 .build();
     }
 }
