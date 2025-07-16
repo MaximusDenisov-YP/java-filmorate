@@ -45,7 +45,11 @@ public class DirectorService {
     }
 
     public Collection<Film> getSortedFilmsByDirector(long directorId, String sortBy) {
-        return directorStorage.getSortedFilmsByDirectorAndSortedParam(directorId, sortBy);
+        Collection<Film> sortedFilms = directorStorage.getSortedFilmsByDirectorAndSortedParam(directorId, sortBy);
+        if (sortedFilms.isEmpty()) {
+            throw new NotFoundExceptionDirectors("Фильм по указанным параметрам не найден.");
+        }
+        return sortedFilms;
     }
 
     private void validateDirector(Director director) {
