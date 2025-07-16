@@ -123,8 +123,7 @@ public class ReviewService {
         if (userStorage.getUserById(userId).isEmpty()) {
             throw new NotFoundException("Пользователь для удаления отзывов не найден");
         }
-        List<Long> likedReviewsIds = reviewStorage.deleteReviewsByUserId(userId);
-//        likedReviewsIds.forEach(this::recalcLikesForReview);
+        reviewStorage.deleteReviewsByUserId(userId);
         log.info("Удалёны отзывы от пользователя с ID {}", userId);
     }
 

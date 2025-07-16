@@ -33,19 +33,19 @@ public class EventDbStorage implements EventStorage {
             return ps;
         }, keyHolder);
 
-        event.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
+        event.setEventId((Objects.requireNonNull(keyHolder.getKey()).longValue()));
         return event;
     }
 
     @Override
     public List<Event> getEvents(long id) {
-        String sql = "SELECT * FROM events WHERE user_id = ?";
+        String sql = "SELECT * FROM events WHERE user_id = ? ORDER BY id";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToEvent(rs), id);
     }
 
     private Event mapRowToEvent(ResultSet rs) throws SQLException {
         Event event = new Event();
-        event.setId(rs.getLong("id"));
+        event.setEventId(rs.getLong("id"));
         event.setUserId(rs.getLong("user_id"));
         event.setEventType(Event.EventType.valueOf(rs.getString("event_type").toUpperCase()));
         event.setOperation(Event.Operation.valueOf(rs.getString("operation").toUpperCase()));
