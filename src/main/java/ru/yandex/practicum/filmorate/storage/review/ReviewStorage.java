@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface ReviewStorage {
     Optional<Review> getReviewById(long id);
 
-    Collection<Review> getReviews();
+    Collection<Review> getReviews(long count);
 
     Collection<Review> getReviewsByFilmId(long filmId, long count);
 

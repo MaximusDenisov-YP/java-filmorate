@@ -70,8 +70,11 @@ public class FilmService {
             throw new NotFoundException("Фильм для обновления не найден");
         }
         validateFilm(film, true);
+        film.setMpa(resolveMpa(film.getMpa()).get());
+        film.setGenres(resolveGenres(film.getGenres()));
+        Film result = filmStorage.updateFilm(film);
         log.info("Фильм обновлён: {}", film);
-        return filmStorage.updateFilm(film);
+        return result;
     }
 
     public void deleteFilm(Long id) {

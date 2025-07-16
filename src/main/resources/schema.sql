@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS users
 (
     id       BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    email    VARCHAR(50) NOT NULL UNIQUE,
-    login    VARCHAR(30) NOT NULL UNIQUE,
+    email    VARCHAR(50) NOT NULL ,
+    login    VARCHAR(30) NOT NULL ,
     name     VARCHAR(30),
     birthday DATE
 );
@@ -15,8 +15,7 @@ CREATE TABLE IF NOT EXISTS friendships
     friend_status VARCHAR(20) CHECK (friend_status IN ('REQUESTED', 'ACCEPTED', 'REJECTED')),
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id_from) REFERENCES users (id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id_to) REFERENCES users (id) ON DELETE CASCADE,
-    UNIQUE (user_id_from, user_id_to)
+    FOREIGN KEY (user_id_to) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS genres
@@ -61,8 +60,7 @@ CREATE TABLE IF NOT EXISTS films_likes
     film_id BIGINT,
     user_id BIGINT,
     FOREIGN KEY (film_id) REFERENCES films (id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-    UNIQUE (film_id, user_id)
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS films_genres
@@ -104,6 +102,5 @@ CREATE TABLE IF NOT EXISTS reviews_likes
     user_id     BIGINT,
     is_positive BOOLEAN,
     FOREIGN KEY (review_id) REFERENCES reviews (id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-    UNIQUE (review_id, user_id)
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );

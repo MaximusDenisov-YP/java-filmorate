@@ -45,7 +45,7 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteFilm(@PathVariable @Positive long id) {
+    public void deleteFilm(@PathVariable long id) {
         filmService.deleteFilm(id);
     }
 
@@ -58,12 +58,12 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void addLike(@Positive @PathVariable long id, @Positive @PathVariable long userId) {
+    public void addLike(@PathVariable long id, @PathVariable long userId) {
         filmService.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void removeLike(@Positive @PathVariable long id, @Positive @PathVariable long userId) {
+    public void removeLike(@PathVariable long id, @PathVariable long userId) {
         filmService.removeLike(id, userId);
     }
 
@@ -79,8 +79,8 @@ public class FilmController {
 
     @GetMapping("/common")
     public List<Film> getCommonFilms(
-            @RequestParam @Positive(message = "userId должен быть положительным") Long userId,
-            @RequestParam @Positive(message = "friendId должен быть положительным") Long friendId) {
+            @RequestParam Long userId,
+            @RequestParam Long friendId) {
         return filmService.getCommonFilms(userId, friendId);
     }
 

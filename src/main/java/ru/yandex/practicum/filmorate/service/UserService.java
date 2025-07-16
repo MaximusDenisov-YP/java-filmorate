@@ -32,6 +32,9 @@ public class UserService {
     }
 
     public User createUser(User user) {
+        if (user.getName() == null || user.getName().isEmpty()) {
+            user.setName(user.getLogin());
+        }
         User result = userStorage.createUser(user);
         log.info("Создан пользователь {}", result);
         return result;

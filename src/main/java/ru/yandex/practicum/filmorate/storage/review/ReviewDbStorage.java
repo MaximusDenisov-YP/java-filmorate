@@ -5,7 +5,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.model.ReviewLike;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,14 +27,35 @@ public class ReviewDbStorage implements ReviewStorage {
     }
 
     @Override
-    public Collection<Review> getReviews() {
-        String query = "SELECT * FROM reviews";
-        return jdbcTemplate.query(query, this::mapRowToReview);
+    public Collection<Review> getReviews(long count) {
+        String query = """
+                SELECT r.*, COALESCE(SUM(CASE
+                 WHEN l.is_positive IS TRUE THEN 1
+                  WHEN l.is_positive IS FALSE THEN -1
+                  ELSE 0
+                   END), 0) AS calculated_useful
+                FROM reviews AS r
+                LEFT JOIN reviews_likes l ON r.id = l.review_id
+                GROUP BY r.id
+                ORDER BY calculated_useful DESC, r.id
+                LIMIT ?
+                """;
+        return jdbcTemplate.query(query, this::mapRowToReview, count);
     }
 
     @Override
     public Optional<Review> getReviewById(long id) {
-        String query = "SELECT * FROM reviews WHERE id = ?";
+        String query = """
+                SELECT r.*, COALESCE(SUM(CASE
+                 WHEN l.is_positive IS TRUE THEN 1
+                  WHEN l.is_positive IS FALSE THEN -1
+                  ELSE 0
+                   END), 0) AS calculated_useful
+                FROM reviews AS r
+                LEFT JOIN reviews_likes l ON r.id = l.review_id
+                WHERE r.id = ?
+                GROUP BY r.id
+                """;
         return jdbcTemplate.query(query, this::mapRowToReview, id)
                 .stream()
                 .findFirst();
@@ -40,7 +63,19 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Collection<Review> getReviewsByFilmId(long filmId, long count) {
-        String query = "SELECT * FROM reviews WHERE film_id = ? ORDER BY useful LIMIT ?";
+        String query = """
+                SELECT r.*, COALESCE(SUM(CASE
+                 WHEN l.is_positive IS TRUE THEN 1
+                  WHEN l.is_positive IS FALSE THEN -1
+                  ELSE 0
+                   END), 0) AS calculated_useful
+                FROM reviews AS r
+                LEFT JOIN reviews_likes l ON r.id = l.review_id
+                WHERE film_id = ?
+                GROUP BY r.id
+                ORDER BY calculated_useful DESC, r.id
+                LIMIT ?
+                """;
         return jdbcTemplate.query(query, this::mapRowToReview, filmId, count);
     }
 
@@ -66,14 +101,14 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Review updateReview(Review review) {
-        String sql = "UPDATE reviews SET content = ?, is_positive = ?, useful = ? WHERE id = ?";
+        String sql = "UPDATE reviews SET content = ?, is_positive = ? WHERE id = ?";
         jdbcTemplate.update(sql,
                 review.getContent(),
                 review.getIsPositive(),
-                review.getUseful(),
                 review.getReviewId()
         );
-        return review;
+        return getReviewById(review.getReviewId())
+                .orElseThrow(() -> new NotFoundException("Ревью на обновление не найдено! ID = " + review.getReviewId()));
     }
 
     @Override
@@ -94,6 +129,11 @@ public class ReviewDbStorage implements ReviewStorage {
         return reviewsIds;
     }
 
+    private List<ReviewLike> getReviewLikesByReviewId(long reviewId) {
+        String sql = "SELECT * FROM reviews_likes WHERE review_id = ?";
+        return jdbcTemplate.query(sql, this::mapRowToReviewLike, reviewId);
+    }
+
     private Review mapRowToReview(ResultSet rs, int rowNum) throws SQLException {
         Review review = new Review();
         review.setReviewId(rs.getLong("id"));
@@ -101,7 +141,22 @@ public class ReviewDbStorage implements ReviewStorage {
         review.setIsPositive(rs.getBoolean("is_positive"));
         review.setUserId(rs.getLong("user_id"));
         review.setFilmId(rs.getLong("film_id"));
-        review.setUseful(rs.getInt("useful"));
+
+        List<ReviewLike> likes = getReviewLikesByReviewId(review.getReviewId());
+        int useful = likes.stream()
+                .mapToInt(like -> like.getIsPositive() ? 1 : -1)
+                .sum();
+        review.setUseful(useful);
+
         return review;
+    }
+
+    private ReviewLike mapRowToReviewLike(ResultSet rs, int rowNum) throws SQLException {
+        ReviewLike reviewLike = new ReviewLike();
+        reviewLike.setId(rs.getLong("id"));
+        reviewLike.setReviewId(rs.getLong("review_id"));
+        reviewLike.setUserId(rs.getLong("user_id"));
+        reviewLike.setIsPositive(rs.getBoolean("is_positive"));
+        return reviewLike;
     }
 }
