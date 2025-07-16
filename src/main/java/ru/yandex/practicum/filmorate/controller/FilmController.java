@@ -9,8 +9,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.DirectorService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 
 @RestController
@@ -83,5 +82,50 @@ public class FilmController {
             @RequestParam @Positive(message = "userId должен быть положительным") Long userId,
             @RequestParam @Positive(message = "friendId должен быть положительным") Long friendId) {
         return filmService.getCommonFilms(userId, friendId);
+    }
+
+    @GetMapping("/search")
+    public List<Film> searchFilms(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "title") String by) {
+
+        String searchQuery = query.toLowerCase();
+        String[] searchBy = by.split(",");
+
+        List<Film> result = new ArrayList<>();
+
+        boolean searchTitle = false;
+        boolean searchDirector = false;
+
+        for (String searchType : searchBy) {
+            switch (searchType.trim().toLowerCase()) {
+                case "title":
+                    searchTitle = true;
+                    break;
+                case "director":
+                    searchDirector = true;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Некоректный параметр поиска: " + searchType);
+            }
+        }
+
+        if (searchTitle && searchDirector) {
+            List<Film> byTitle = filmService.searchFilmsByTitle(searchQuery);
+            List<Film> byDirector = filmService.searchFilmsByDirector(searchQuery);
+
+            Map<Long, Film> filmsMap = new HashMap<>();
+            byTitle.forEach(f -> filmsMap.put(f.getId(), f));
+            byDirector.forEach(f -> filmsMap.put(f.getId(), f));
+
+            result.addAll(filmsMap.values());
+        } else if (searchTitle) {
+            result.addAll(filmService.searchFilmsByTitle(searchQuery));
+        } else if (searchDirector) {
+            result.addAll(filmService.searchFilmsByDirector(searchQuery));
+        }
+
+        result.sort(Comparator.comparingInt(Film::getLikesCount).reversed());
+        return result;
     }
 }

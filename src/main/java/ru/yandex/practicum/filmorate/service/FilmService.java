@@ -179,5 +179,17 @@ public class FilmService {
         return filmStorage.getCommonFilms(userId, friendId);
     }
 
+    public List<Film> searchFilmsByTitle(String query) {
+        return filmStorage.searchFilmsByTitle(query);
+    }
+
+    public List<Film> searchFilmsByDirector(String query) {
+        return filmStorage.searchFilmsByDirector(query);
+    }
+
+    public List<Film> searchFilmsByTitleAndDirector(String query) {
+        return filmStorage.searchFilmsByTitleAndDirector(query);
+    }
+
 }
 

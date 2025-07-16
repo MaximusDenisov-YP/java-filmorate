@@ -118,8 +118,6 @@ public class ReviewService {
     }
 
     public void deleteReviewsByUserId(long userId) {
-        // Получаем список отзывов, которым пользователь ставил лайки/дизлайки
-        // Удаляем отзывы пользователя и лайки/дизлайки, которые он ставил отзывам
         if (userStorage.getUserById(userId).isEmpty()) {
             throw new NotFoundException("Пользователь для удаления отзывов не найден");
         }
