@@ -235,6 +235,7 @@ public class FilmDbStorage implements FilmStorage {
         log.debug("getPopularFilmsByGenreAndYear.class sql = \n{}\nargs = {}", sql, args);
         return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> mapRowToFilm(rs), args.toArray());
     }
+
     private Film mapRowToFilm(ResultSet rs) throws SQLException {
         Film film = new Film();
         film.setId(rs.getLong("id"));
@@ -253,6 +254,7 @@ public class FilmDbStorage implements FilmStorage {
         film.setDirectors(getDirectorsByFilmId(film.getId()));
         return film;
     }
+
     private void insertFilmGenres(Long filmId, List<Genre> genres) {
         if (genres == null || genres.isEmpty()) return;
 
@@ -349,18 +351,18 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> searchFilmsByTitleAndDirector(String query) {
         String sql = """
-        SELECT f.*, m.id as mpa_id, m.name as mpa_name,
-               SUM(CASE WHEN LOWER(f.name) LIKE ? THEN 1 ELSE 0 END) as title_matches,
-               SUM(CASE WHEN LOWER(d.name) LIKE ? THEN 1 ELSE 0 END) as director_matches
-        FROM films f
-        LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
-        LEFT JOIN film_directors fd ON f.id = fd.film_id
-        LEFT JOIN directors d ON fd.director_id = d.id
-        WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?
-        GROUP BY f.id, m.id, m.name
-        ORDER BY (title_matches + director_matches) DESC, 
-                 (SELECT COUNT(*) FROM films_likes WHERE film_id = f.id) DESC
-        """;
+                SELECT f.*, m.id as mpa_id, m.name as mpa_name,
+                       SUM(CASE WHEN LOWER(f.name) LIKE ? THEN 1 ELSE 0 END) as title_matches,
+                       SUM(CASE WHEN LOWER(d.name) LIKE ? THEN 1 ELSE 0 END) as director_matches
+                FROM films f
+                LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
+                LEFT JOIN film_directors fd ON f.id = fd.film_id
+                LEFT JOIN directors d ON fd.director_id = d.id
+                WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?
+                GROUP BY f.id, m.id, m.name
+                ORDER BY (title_matches + director_matches) DESC, 
+                         (SELECT COUNT(*) FROM films_likes WHERE film_id = f.id) DESC
+                """;
         String searchPattern = "%" + query.toLowerCase() + "%";
         List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs),
                 searchPattern, searchPattern, searchPattern, searchPattern);
