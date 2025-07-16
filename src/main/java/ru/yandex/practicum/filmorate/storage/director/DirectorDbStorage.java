@@ -9,6 +9,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.sql.PreparedStatement;
@@ -43,6 +44,9 @@ public class DirectorDbStorage implements DirectorStorage {
         films.forEach(film -> {
             List<Director> directors = getDirectorsByFilmId(film.getId());
             film.setDirectors(directors);
+
+            List<Genre> genres = getGenresByFilmId(film.getId());
+            film.setGenres(genres);
         });
 
         return films;
@@ -111,6 +115,16 @@ public class DirectorDbStorage implements DirectorStorage {
         jdbcTemplate.update(sql, id);
     }
 
+    private List<Genre> getGenresByFilmId(long filmId) {
+        String sql = "SELECT g.id, g.name FROM genres g " +
+                "JOIN films_genres fg ON g.id = fg.genre_id " +
+                "WHERE fg.film_id = ? ORDER BY g.id";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new Genre(
+                rs.getInt("id"),
+                rs.getString("name")
+        ), filmId);
+    }
+
     private Film mapRowToFilm(ResultSet rs) throws SQLException {
         Film film = new Film();
         film.setId(rs.getLong("id"));
@@ -126,6 +140,7 @@ public class DirectorDbStorage implements DirectorStorage {
         }
 
         film.setDirectors(new ArrayList<>());
+        film.setGenres(new ArrayList<>());
 
         return film;
     }
