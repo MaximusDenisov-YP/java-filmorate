@@ -360,7 +360,7 @@ public class FilmDbStorage implements FilmStorage {
                 LEFT JOIN directors d ON fd.director_id = d.id
                 WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?
                 GROUP BY f.id, m.id, m.name
-                ORDER BY (title_matches + director_matches) DESC, 
+                ORDER BY (title_matches + director_matches) DESC,
                          (SELECT COUNT(*) FROM films_likes WHERE film_id = f.id) DESC
                 """;
         String searchPattern = "%" + query.toLowerCase() + "%";
