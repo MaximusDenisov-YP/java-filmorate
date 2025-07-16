@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.film.FilmLikeStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -34,7 +35,7 @@ public class FilmService {
             @Qualifier("filmDbStorage") FilmStorage filmStorage,
             @Qualifier("userDbStorage") UserStorage userStorage,
             FilmLikeStorage likeStorage, MpaStorage mpaDbStorage,
-            GenreStorage genreDbStorage
+            GenreStorage genreDbStorage, FriendshipStorage friendshipStorage
     ) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
@@ -164,6 +165,13 @@ public class FilmService {
         }
 
         return resolvedGenres;
+    }
+
+    public List<Film> getCommonFilms(Long userId, Long friendId) {
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
+
+        return filmStorage.getCommonFilms(userId, friendId);
     }
 
 }

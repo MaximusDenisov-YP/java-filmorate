@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.service.DirectorService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
+import java.util.List;
 
 
 @RestController
@@ -75,5 +76,12 @@ public class FilmController {
             throw new ValidationException("Некорректный параметр сортировки. Используйте 'year' либо 'likes'");
         }
         return directorService.getSortedFilmsByDirector(directorId, sortBy);
+    }
+
+    @GetMapping("/common")
+    public List<Film> getCommonFilms(
+            @RequestParam @Positive(message = "userId должен быть положительным") Long userId,
+            @RequestParam @Positive(message = "friendId должен быть положительным") Long friendId) {
+        return filmService.getCommonFilms(userId, friendId);
     }
 }

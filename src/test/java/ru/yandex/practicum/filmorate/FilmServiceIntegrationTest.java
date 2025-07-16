@@ -1,39 +1,22 @@
 package ru.yandex.practicum.filmorate;
 
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
-import ru.yandex.practicum.filmorate.storage.film.FilmLikeDbStorage;
-import ru.yandex.practicum.filmorate.storage.mpa.MpaDbStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
-
 import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@JdbcTest
+@SpringBootTest
 @AutoConfigureTestDatabase
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({
-        FilmService.class,
-        FilmDbStorage.class,
-        UserDbStorage.class,
-        FilmLikeDbStorage.class,
-        MpaDbStorage.class,
-        GenreDbStorage.class
-})
 public class FilmServiceIntegrationTest {
-
-    private final FilmService filmService;
+    @Autowired
+    private FilmService filmService;
 
     @Test
     public void testCreateAndGetFilmById() {
