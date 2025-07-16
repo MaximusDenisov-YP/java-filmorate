@@ -66,7 +66,7 @@ public class ReviewService {
 
         log.info("Мы обновляем отзыв {}\nНа отзыв {}", reviewStorage.getReviewById(review.getUserId()), review);
         Review result = reviewStorage.updateReview(review);
-        eventStorage.createEvent(new Event(review.getUserId(), Event.EventType.REVIEW, Event.Operation.UPDATE,
+        eventStorage.createEvent(new Event(result.getUserId(), Event.EventType.REVIEW, Event.Operation.UPDATE,
                 review.getReviewId()));
         log.info("Обновлён отзыв {}", result);
         return result;

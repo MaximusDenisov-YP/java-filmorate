@@ -39,7 +39,7 @@ public class EventDbStorage implements EventStorage {
 
     @Override
     public List<Event> getEvents(long id) {
-        String sql = "SELECT * FROM events WHERE user_id = ? ORDER BY id";
+        String sql = "SELECT * FROM events WHERE user_id = ?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToEvent(rs), id);
     }
 

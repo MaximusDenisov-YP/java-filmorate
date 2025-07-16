@@ -98,9 +98,7 @@ public class UserService {
     }
 
     public List<Event> getEvents(long id) {
-        if (userStorage.getUserById(id).isEmpty()) {
-            throw new NotFoundException("Не удалось найти события для пользователя с таким id");
-        }
+        getUserById(id);
         return eventStorage.getEvents(id);
     }
 }
