@@ -4,10 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.model.ReviewLike;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewLikeStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
@@ -15,6 +13,7 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -24,12 +23,15 @@ public class ReviewService {
     private final ReviewLikeStorage reviewLikeStorage;
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+    private final EventStorage eventStorage;
 
-    public ReviewService(ReviewStorage reviewStorage, ReviewLikeStorage reviewLikeStorage, FilmStorage filmStorage, UserStorage userStorage) {
+    public ReviewService(ReviewStorage reviewStorage, ReviewLikeStorage reviewLikeStorage, FilmStorage filmStorage,
+                         UserStorage userStorage, EventStorage eventStorage) {
         this.reviewStorage = reviewStorage;
         this.reviewLikeStorage = reviewLikeStorage;
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
+        this.eventStorage = eventStorage;
     }
 
     public Collection<Review> getReviews() {
@@ -53,6 +55,8 @@ public class ReviewService {
     public Review createReview(Review review) {
         validateReview(review.getFilmId(), review.getUserId());
         Review result = reviewStorage.createReview(review);
+        eventStorage.createEvent(new Event(review.getUserId(), Event.EventType.REVIEW, Event.Operation.ADD,
+                review.getReviewId()));
         log.info("Создан отзыв {}", result);
         return result;
     }
@@ -60,12 +64,18 @@ public class ReviewService {
     public Review updateReview(Review review) {
         validateReview(review.getFilmId(), review.getUserId());
         Review result = reviewStorage.updateReview(review);
+        eventStorage.createEvent(new Event(review.getUserId(), Event.EventType.REVIEW, Event.Operation.UPDATE,
+                review.getReviewId()));
         log.info("Обновлён отзыв {}", result);
         return result;
     }
 
     public void deleteReview(long reviewId) {
+        Optional<Review> optionalReview = reviewStorage.getReviewById(reviewId);
         reviewStorage.deleteReview(reviewId);
+        optionalReview.ifPresent(review ->
+                eventStorage.createEvent(new Event(review.getUserId(), Event.EventType.REVIEW, Event.Operation.REMOVE,
+                reviewId)));
         log.info("Удалён отзыв с ID {}", reviewId);
     }
 

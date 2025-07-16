@@ -74,6 +74,17 @@ CREATE TABLE IF NOT EXISTS films_genres
     FOREIGN KEY (genre_id) REFERENCES genres (id)
 );
 
+CREATE TABLE IF NOT EXISTS events
+(
+  id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id    BIGINT,
+  event_type VARCHAR(50) NOT NULL,
+  operation  VARCHAR(50) NOT NULL,
+  entity_id  BIGINT,
+  timestamp  BIGINT,
+  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS reviews
 (
     id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

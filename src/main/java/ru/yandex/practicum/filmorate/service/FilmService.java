@@ -5,12 +5,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmLikeStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -29,19 +30,21 @@ public class FilmService {
     private final FilmLikeStorage likeStorage;
     private final MpaStorage mpaDbStorage;
     private final GenreStorage genreDbStorage;
+    private final EventStorage eventStorage;
     private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
     public FilmService(
             @Qualifier("filmDbStorage") FilmStorage filmStorage,
             @Qualifier("userDbStorage") UserStorage userStorage,
             FilmLikeStorage likeStorage, MpaStorage mpaDbStorage,
-            GenreStorage genreDbStorage, FriendshipStorage friendshipStorage
+            GenreStorage genreDbStorage, EventStorage eventStorage
     ) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.likeStorage = likeStorage;
         this.mpaDbStorage = mpaDbStorage;
         this.genreDbStorage = genreDbStorage;
+        this.eventStorage = eventStorage;
     }
 
     public Collection<Film> getFilms() {
@@ -101,6 +104,7 @@ public class FilmService {
                 .orElseThrow(() -> new NotFoundException("Фильм с id=%d не найден".formatted(filmId)));
 
         likeStorage.addFilmLike(filmId, userId);
+        eventStorage.createEvent(new Event(userId, Event.EventType.LIKE, Event.Operation.ADD, filmId));
     }
 
     public void removeLike(long filmId, long userId) {
@@ -111,6 +115,7 @@ public class FilmService {
                 .orElseThrow(() -> new NotFoundException("Фильм с id=%d не найден".formatted(filmId)));
 
         likeStorage.removeFilmLike(filmId, userId);
+        eventStorage.createEvent(new Event(userId, Event.EventType.LIKE, Event.Operation.REMOVE, filmId));
     }
 
     public List<Genre> getAllGenres() {
