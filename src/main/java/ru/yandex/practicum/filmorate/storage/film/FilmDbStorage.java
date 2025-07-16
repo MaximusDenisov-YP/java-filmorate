@@ -141,7 +141,7 @@ public class FilmDbStorage implements FilmStorage {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 ps.setLong(1, filmId);
-                ps.setLong(2, directors.get(i).getId()); // Изменено с setInt на setLong
+                ps.setLong(2, directors.get(i).getId());
             }
 
             @Override
@@ -318,5 +318,61 @@ public class FilmDbStorage implements FilmStorage {
                 userId,
                 friendId
         );
+    }
+
+    @Override
+    public List<Film> searchFilmsByTitle(String query) {
+        String sql = """
+            SELECT f.*, m.id as mpa_id, m.name as mpa_name
+            FROM films f
+            LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
+            WHERE LOWER(f.name) LIKE ?
+            """;
+        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), "%" + query.toLowerCase() + "%");
+        films.forEach(this::loadFilmLikes);
+        return films;
+    }
+
+    @Override
+    public List<Film> searchFilmsByDirector(String query) {
+        String sql = """
+            SELECT f.*, m.id as mpa_id, m.name as mpa_name
+            FROM films f
+            LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
+            LEFT JOIN film_directors fd ON f.id = fd.film_id
+            LEFT JOIN directors d ON fd.director_id = d.id
+            WHERE LOWER(d.name) LIKE ?
+            """;
+        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), "%" + query.toLowerCase() + "%");
+        films.forEach(this::loadFilmLikes);
+        return films;
+    }
+
+    @Override
+    public List<Film> searchFilmsByTitleAndDirector(String query) {
+        String sql = """
+                SELECT f.*, m.id as mpa_id, m.name as mpa_name,
+                       SUM(CASE WHEN LOWER(f.name) LIKE ? THEN 1 ELSE 0 END) as title_matches,
+                       SUM(CASE WHEN LOWER(d.name) LIKE ? THEN 1 ELSE 0 END) as director_matches
+                FROM films f
+                LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
+                LEFT JOIN film_directors fd ON f.id = fd.film_id
+                LEFT JOIN directors d ON fd.director_id = d.id
+                WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?
+                GROUP BY f.id, m.id, m.name
+                ORDER BY (title_matches + director_matches) DESC,
+                         (SELECT COUNT(*) FROM films_likes WHERE film_id = f.id) DESC
+                """;
+        String searchPattern = "%" + query.toLowerCase() + "%";
+        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs),
+                searchPattern, searchPattern, searchPattern, searchPattern);
+        films.forEach(this::loadFilmLikes);
+        return films;
+    }
+
+    private void loadFilmLikes(Film film) {
+        String sql = "SELECT user_id FROM films_likes WHERE film_id = ?";
+        Set<Long> likes = new HashSet<>(jdbcTemplate.queryForList(sql, Long.class, film.getId()));
+        film.setUsersLikes(likes);
     }
 }

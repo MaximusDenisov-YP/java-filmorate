@@ -36,4 +36,8 @@ public class Film {
     @JsonProperty("directors")
     private List<Director> directors;
 
+    public int getLikesCount() {
+        return usersLikes != null ? usersLikes.size() : 0;
+    }
+
 }

@@ -122,7 +122,7 @@ public class FriendshipDbStorage implements FriendshipStorage {
                 .login(rs.getString("login"))
                 .name(rs.getString("name"))
                 .birthday(rs.getDate("birthday").toLocalDate())
-                .friends(new HashSet<>()) // по умолчанию пусто — заполняется отдельно
+                .friends(new HashSet<>())
                 .build();
     }
 }
