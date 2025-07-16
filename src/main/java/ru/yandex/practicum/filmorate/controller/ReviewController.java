@@ -28,7 +28,7 @@ public class ReviewController {
         if (filmId != null) {
             return reviewService.getReviewsByFilmId(filmId, count);
         }
-        return reviewService.getReviews();
+        return reviewService.getReviews(count);
     }
 
     @GetMapping("/{id}")

@@ -21,9 +21,10 @@ public class User {
     @NotNull
     @Pattern(regexp = "\\S+", message = "Имя пользователя не должно содержать пробелы")
     private String login;
-    @Size(min = 1, max = 20)
+    @Size(min = 0, max = 20)
     private String name;
     @NotNull
+    @PastOrPresent(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
     private Set<Long> friends;
 }

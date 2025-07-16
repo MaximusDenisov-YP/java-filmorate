@@ -34,8 +34,8 @@ public class ReviewService {
         this.eventStorage = eventStorage;
     }
 
-    public Collection<Review> getReviews() {
-        return reviewStorage.getReviews();
+    public Collection<Review> getReviews(long count) {
+        return reviewStorage.getReviews(count);
     }
 
     public Review getReviewById(Long id) {
@@ -63,6 +63,8 @@ public class ReviewService {
 
     public Review updateReview(Review review) {
         validateReview(review.getFilmId(), review.getUserId());
+
+        log.info("Мы обновляем отзыв {}\nНа отзыв {}", reviewStorage.getReviewById(review.getUserId()), review);
         Review result = reviewStorage.updateReview(review);
         eventStorage.createEvent(new Event(review.getUserId(), Event.EventType.REVIEW, Event.Operation.UPDATE,
                 review.getReviewId()));
@@ -82,32 +84,32 @@ public class ReviewService {
     public void setLike(long reviewId, long userId) {
         if (hasUserLike(reviewId, userId)) {
             reviewLikeStorage.removeReviewLike(reviewId, userId);
-            recalcLikesForReview(reviewId);
+//            recalcLikesForReview(reviewId);
         }
         reviewLikeStorage.addReviewLike(reviewId, userId, true);
-        recalcLikesForReview(reviewId);
+//        recalcLikesForReview(reviewId);
         log.info("Поставлен лайк отзыву с ID {} от пользователя с ID {}", reviewId, userId);
     }
 
     public void setDislike(long reviewId, long userId) {
         if (hasUserLike(reviewId, userId)) {
             reviewLikeStorage.removeReviewLike(reviewId, userId);
-            recalcLikesForReview(reviewId);
+//            recalcLikesForReview(reviewId);
         }
         reviewLikeStorage.addReviewLike(reviewId, userId, false);
-        recalcLikesForReview(reviewId);
+//        recalcLikesForReview(reviewId);
         log.info("Поставлен дизлайк отзыву с ID {} от пользователя с ID {}", reviewId, userId);
     }
 
     public void deleteLike(long reviewId, long userId) {
         reviewLikeStorage.removeReviewLike(reviewId, userId);
-        recalcLikesForReview(reviewId);
+//        recalcLikesForReview(reviewId);
         log.info("Удалён лайк у отзыва с ID {} от пользователя с ID {}", reviewId, userId);
     }
 
     public void deleteDislike(long reviewId, long userId) {
         reviewLikeStorage.removeReviewDislike(reviewId, userId);
-        recalcLikesForReview(reviewId);
+//        recalcLikesForReview(reviewId);
         log.info("Удалён дизлайк у отзыва с ID {} от пользователя с ID {}", reviewId, userId);
     }
 
@@ -122,20 +124,20 @@ public class ReviewService {
             throw new NotFoundException("Пользователь для удаления отзывов не найден");
         }
         List<Long> likedReviewsIds = reviewStorage.deleteReviewsByUserId(userId);
-        likedReviewsIds.forEach(this::recalcLikesForReview);
+//        likedReviewsIds.forEach(this::recalcLikesForReview);
         log.info("Удалёны отзывы от пользователя с ID {}", userId);
     }
 
-    private void recalcLikesForReview(long reviewId) {
-        List<ReviewLike> likes = (List<ReviewLike>) reviewLikeStorage.getReviewLikesByReviewId(reviewId);
-        int useful = likes.stream()
-                .mapToInt(like -> like.getIsPositive() ? 1 : -1)
-                .sum();
-        Review review = reviewStorage.getReviewById(reviewId)
-                .orElseThrow(() -> new NotFoundException("Отзыв с ID %d не найден".formatted(reviewId)));
-        review.setUseful(useful);
-        reviewStorage.updateReview(review);
-    }
+//    private void recalcLikesForReview(long reviewId) {
+//        List<ReviewLike> likes = (List<ReviewLike>) reviewLikeStorage.getReviewLikesByReviewId(reviewId);
+//        int useful = likes.stream()
+//                .mapToInt(like -> like.getIsPositive() ? 1 : -1)
+//                .sum();
+//        Review review = reviewStorage.getReviewById(reviewId)
+//                .orElseThrow(() -> new NotFoundException("Отзыв с ID %d не найден".formatted(reviewId)));
+//        review.setUseful(useful);
+//        reviewStorage.updateReview(review);
+//    }
 
     private void validateReview(long filmId, @Nullable Long userId) {
         List<Film> films = (List<Film>) filmStorage.getFilms();
