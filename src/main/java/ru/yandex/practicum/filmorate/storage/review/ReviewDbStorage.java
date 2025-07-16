@@ -118,15 +118,15 @@ public class ReviewDbStorage implements ReviewStorage {
     }
 
     @Transactional
-    public List<Long> deleteReviewsByUserId(long userId) {
-        String getReviewsIds = "SELECT review_id FROM reviews_likes WHERE user_id = ?";
+    public void deleteReviewsByUserId(long userId) {
+        //String getReviewsIds = "SELECT review_id FROM reviews_likes WHERE user_id = ?";
         String deleteReviewsLikes = "DELETE FROM reviews_likes WHERE user_id = ?";
         String deleteReviews = "DELETE FROM reviews WHERE user_id = ?";
-        List<Long> reviewsIds = jdbcTemplate.query(getReviewsIds,
-                (rs, rowNum) -> rs.getLong("review_id"), userId);
+//        List<Long> reviewsIds = jdbcTemplate.query(getReviewsIds,
+//                (rs, rowNum) -> rs.getLong("review_id"), userId);
         jdbcTemplate.update(deleteReviewsLikes, userId);
         jdbcTemplate.update(deleteReviews, userId);
-        return reviewsIds;
+        //return reviewsIds;
     }
 
     private List<ReviewLike> getReviewLikesByReviewId(long reviewId) {

@@ -33,7 +33,7 @@ public class EventDbStorage implements EventStorage {
             return ps;
         }, keyHolder);
 
-        event.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
+        event.setEventId((Objects.requireNonNull(keyHolder.getKey()).longValue()));
         return event;
     }
 
@@ -45,7 +45,7 @@ public class EventDbStorage implements EventStorage {
 
     private Event mapRowToEvent(ResultSet rs) throws SQLException {
         Event event = new Event();
-        event.setId(rs.getLong("id"));
+        event.setEventId(rs.getLong("id"));
         event.setUserId(rs.getLong("user_id"));
         event.setEventType(Event.EventType.valueOf(rs.getString("event_type").toUpperCase()));
         event.setOperation(Event.Operation.valueOf(rs.getString("operation").toUpperCase()));

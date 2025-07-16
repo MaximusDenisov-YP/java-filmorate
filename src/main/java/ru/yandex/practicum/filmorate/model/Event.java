@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Event {
     @Positive
-    private long id;
+    private long eventId;
     @Positive
     private long userId;
     @NotNull
