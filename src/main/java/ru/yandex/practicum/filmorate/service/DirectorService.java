@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.NotFoundExceptionDirectors;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -26,7 +26,7 @@ public class DirectorService {
 
     public Director getDirectorById(long id) {
         return directorStorage.getDirectorById(id).orElseThrow(() ->
-                new NotFoundExceptionDirectors("Режиссер не найден: "));
+                new NotFoundException("Режиссер не найден: "));
     }
 
     public Director createDirector(Director director) {
@@ -47,7 +47,7 @@ public class DirectorService {
     public Collection<Film> getSortedFilmsByDirector(long directorId, String sortBy) {
         Collection<Film> sortedFilms = directorStorage.getSortedFilmsByDirectorAndSortedParam(directorId, sortBy);
         if (sortedFilms.isEmpty()) {
-            throw new NotFoundExceptionDirectors("Фильм по указанным параметрам не найден.");
+            throw new NotFoundException("Фильм по указанным параметрам не найден.");
         }
         return sortedFilms;
     }

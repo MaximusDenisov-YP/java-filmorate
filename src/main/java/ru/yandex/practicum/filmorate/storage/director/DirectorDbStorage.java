@@ -29,40 +29,21 @@ public class DirectorDbStorage implements DirectorStorage {
     @Override
     public Collection<Film> getSortedFilmsByDirectorAndSortedParam(long id, String sortBy) {
         String sql = """
-                SELECT f.*, m.id as mpa_id, m.name as mpa_name
+                SELECT f.*, m.id as mpa_id, m.name as mpa_name,
+                d.id AS director_id, d.name AS director_name,
+                g.id AS genre_id, g.name AS genre_name
                 FROM films f
                 LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
                 LEFT JOIN film_directors fd ON f.id = fd.film_id
+                LEFT JOIN directors d ON fd.director_id = d.id
+                LEFT JOIN films_genres fg ON f.id = fg.film_id
+                LEFT JOIN genres g ON fg.genre_id = g.id
                 WHERE fd.director_id = ?
                 ORDER BY
                     CASE WHEN ? = 'likes' THEN (SELECT COUNT(*) FROM films_likes WHERE film_id = f.id) END DESC,
-                    CASE WHEN ? = 'year' THEN f.release_date END ASC
+                    CASE WHEN ? = 'year' THEN f.release_date END
                 """;
-
-        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), id, sortBy, sortBy);
-
-        films.forEach(film -> {
-            List<Director> directors = getDirectorsByFilmId(film.getId());
-            film.setDirectors(directors);
-
-            List<Genre> genres = getGenresByFilmId(film.getId());
-            film.setGenres(genres);
-        });
-
-        return films;
-    }
-
-    private List<Director> getDirectorsByFilmId(Long filmId) {
-        String sql = """
-                SELECT d.id, d.name
-                FROM directors d
-                JOIN film_directors fd ON d.id = fd.director_id
-                WHERE fd.film_id = ?
-                ORDER BY d.id
-                """;
-        return jdbcTemplate.query(sql, (rs, rowNum) ->
-                        new Director(rs.getLong("id"), rs.getString("name")),
-                filmId);
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToFilm(rs), id, sortBy, sortBy);
     }
 
     @Override
@@ -115,16 +96,6 @@ public class DirectorDbStorage implements DirectorStorage {
         jdbcTemplate.update(sql, id);
     }
 
-    private List<Genre> getGenresByFilmId(long filmId) {
-        String sql = "SELECT g.id, g.name FROM genres g " +
-                "JOIN films_genres fg ON g.id = fg.genre_id " +
-                "WHERE fg.film_id = ? ORDER BY g.id";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new Genre(
-                rs.getInt("id"),
-                rs.getString("name")
-        ), filmId);
-    }
-
     private Film mapRowToFilm(ResultSet rs) throws SQLException {
         Film film = new Film();
         film.setId(rs.getLong("id"));
@@ -139,10 +110,23 @@ public class DirectorDbStorage implements DirectorStorage {
             film.setMpa(new Mpa(mpaId, mpaName));
         }
 
-        film.setDirectors(new ArrayList<>());
-        film.setGenres(new ArrayList<>());
+        long directorId = rs.getLong("director_id");
+        String directorName = rs.getString("director_name");
+        if (directorId != 0 && directorName != null) {
+            film.setDirectors(List.of(new Director(
+                    directorId,
+                    directorName
+            )));
+        }
 
+        int genreId = rs.getInt("genre_id");
+        String genreName = rs.getString("genre_name");
+        if (genreId != 0 && mpaName != null) {
+            film.setGenres(List.of(new Genre(
+                    genreId,
+                    genreName
+            )));
+        }
         return film;
     }
-
 }
