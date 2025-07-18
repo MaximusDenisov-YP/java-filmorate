@@ -1,9 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -15,7 +13,6 @@ import java.util.Collection;
 
 @RestController
 @RequestMapping("/directors")
-@Validated
 public class DirectorController {
     private final DirectorService directorService;
 

@@ -57,18 +57,6 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(NotFoundExceptionDirectors.class)
-    public ResponseEntity<ErrorResponseDirectors> handleNotFoundExceptionDirectors(NotFoundExceptionDirectors exc) {
-        log.warn(exc.getMessage(), exc);
-        return new ResponseEntity<>(
-                new ErrorResponseDirectors(
-                        HttpStatus.NOT_FOUND.value(),
-                        exc.getMessage()
-                ),
-                HttpStatus.NOT_FOUND
-        );
-    }
-
     @ExceptionHandler(FriendshipException.class)
     public ResponseEntity<ErrorResponse> handleFriendshipException(FriendshipException exc) {
         log.warn(exc.getMessage(), exc);

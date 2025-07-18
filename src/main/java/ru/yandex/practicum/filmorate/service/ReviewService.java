@@ -77,39 +77,33 @@ public class ReviewService {
         reviewStorage.deleteReview(reviewId);
         optionalReview.ifPresent(review ->
                 eventStorage.createEvent(new Event(review.getUserId(), Event.EventType.REVIEW, Event.Operation.REMOVE,
-                reviewId)));
+                        reviewId)));
         log.info("Удалён отзыв с ID {}", reviewId);
     }
 
     public void setLike(long reviewId, long userId) {
         if (hasUserLike(reviewId, userId)) {
             reviewLikeStorage.removeReviewLike(reviewId, userId);
-//            recalcLikesForReview(reviewId);
         }
         reviewLikeStorage.addReviewLike(reviewId, userId, true);
-//        recalcLikesForReview(reviewId);
         log.info("Поставлен лайк отзыву с ID {} от пользователя с ID {}", reviewId, userId);
     }
 
     public void setDislike(long reviewId, long userId) {
         if (hasUserLike(reviewId, userId)) {
             reviewLikeStorage.removeReviewLike(reviewId, userId);
-//            recalcLikesForReview(reviewId);
         }
         reviewLikeStorage.addReviewLike(reviewId, userId, false);
-//        recalcLikesForReview(reviewId);
         log.info("Поставлен дизлайк отзыву с ID {} от пользователя с ID {}", reviewId, userId);
     }
 
     public void deleteLike(long reviewId, long userId) {
         reviewLikeStorage.removeReviewLike(reviewId, userId);
-//        recalcLikesForReview(reviewId);
         log.info("Удалён лайк у отзыва с ID {} от пользователя с ID {}", reviewId, userId);
     }
 
     public void deleteDislike(long reviewId, long userId) {
         reviewLikeStorage.removeReviewDislike(reviewId, userId);
-//        recalcLikesForReview(reviewId);
         log.info("Удалён дизлайк у отзыва с ID {} от пользователя с ID {}", reviewId, userId);
     }
 
@@ -126,17 +120,6 @@ public class ReviewService {
         reviewStorage.deleteReviewsByUserId(userId);
         log.info("Удалёны отзывы от пользователя с ID {}", userId);
     }
-
-//    private void recalcLikesForReview(long reviewId) {
-//        List<ReviewLike> likes = (List<ReviewLike>) reviewLikeStorage.getReviewLikesByReviewId(reviewId);
-//        int useful = likes.stream()
-//                .mapToInt(like -> like.getIsPositive() ? 1 : -1)
-//                .sum();
-//        Review review = reviewStorage.getReviewById(reviewId)
-//                .orElseThrow(() -> new NotFoundException("Отзыв с ID %d не найден".formatted(reviewId)));
-//        review.setUseful(useful);
-//        reviewStorage.updateReview(review);
-//    }
 
     private void validateReview(long filmId, @Nullable Long userId) {
         List<Film> films = (List<Film>) filmStorage.getFilms();

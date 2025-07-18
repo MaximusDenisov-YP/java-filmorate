@@ -6,15 +6,15 @@ import org.hibernate.validator.constraints.Length;
 
 @Data
 public class Review {
-    long reviewId;
+    private long reviewId;
     @NotNull
     @Length(min = 1, max = 2000)
-    String content;
+    private String content;
     @NotNull
-    Boolean isPositive;
+    private Boolean isPositive;
     @NotNull
-    Long userId;
+    private Long userId;
     @NotNull
-    Long filmId;
-    int useful;
+    private Long filmId;
+    private int useful;
 }
