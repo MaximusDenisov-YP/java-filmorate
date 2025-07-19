@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -16,10 +18,13 @@ import java.util.List;
 public class UserService {
     private final UserStorage userStorage;
     private final FriendshipStorage friendshipStorage;
+    private final EventStorage eventStorage;
 
-    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, FriendshipStorage friendshipStorage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, FriendshipStorage friendshipStorage,
+                       EventStorage eventStorage) {
         this.userStorage = userStorage;
         this.friendshipStorage = friendshipStorage;
+        this.eventStorage = eventStorage;
     }
 
     public Collection<User> getUsers() {
@@ -27,18 +32,28 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        return userStorage.createUser(user);
+        if (user.getName() == null || user.getName().isEmpty()) {
+            user.setName(user.getLogin());
+        }
+        User result = userStorage.createUser(user);
+        log.info("Создан пользователь {}", result);
+        return result;
     }
 
     public User updateUser(User user) {
         getUserById(user.getId());
-        return userStorage.updateUser(user)
+        User result = userStorage.updateUser(user)
                 .orElseThrow(() -> new NotFoundException("Не удалось обновить пользователя"));
+        log.info("Обновлён пользователь {}", result);
+        return result;
     }
 
     public void deleteUser(Long id) {
-        User user = getUserById(id);
-        userStorage.deleteUser(user);
+        if (userStorage.getUserById(id).isEmpty()) {
+            throw new NotFoundException("Пользователь для удаления не найден");
+        }
+        userStorage.deleteUser(id);
+        log.info("Удалён пользователь с ID {}", id);
     }
 
     public User getUserById(Long id) {
@@ -68,6 +83,7 @@ public class UserService {
         }
         log.info("ОТПРАВЛЕН ЗАПРОС ОТ ID {} к ID {}", fromUserId, toUserId);
         friendshipStorage.sendFriendRequest(fromUserId, toUserId);
+        eventStorage.createEvent(new Event(fromUserId, Event.EventType.FRIEND, Event.Operation.ADD, toUserId));
     }
 
     public void removeFriend(long fromUserId, long toUserId) {
@@ -78,6 +94,11 @@ public class UserService {
         if (friendIdsFrom != null && friendIdsFrom.stream().map(User::getId).anyMatch(id -> id == toUserId)) {
             friendshipStorage.removeFriendship(fromUserId, toUserId);
         }
+        eventStorage.createEvent(new Event(fromUserId, Event.EventType.FRIEND, Event.Operation.REMOVE, toUserId));
     }
 
+    public List<Event> getEvents(long id) {
+        getUserById(id);
+        return eventStorage.getEvents(id);
+    }
 }

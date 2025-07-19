@@ -7,11 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Like {
-
+public class Director {
     private Long id;
-
-    private Long filmId;
-
-    private Long userId;
+    private String name;
 }
